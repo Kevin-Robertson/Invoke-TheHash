@@ -68,11 +68,11 @@ Invoke-SMBExec -Target 192.168.100.20 -Domain TESTDOMAIN -Username TEST -Hash F6
 * __Username__ - Username to use for authentication.  
 * __Domain__ - Domain to use for authentication. This parameter is not needed with local accounts or when using @domain after the username.  
 * __Hash__ - NTLM password hash for authentication. This module will accept either LM:NTLM or NTLM format.  
-* __Command__ - Command to execute on the target. If a command is not specified, the function will just check to see if the username and hash has access to WMI on the target.  
-* __CommandCOMSPEC__ - Default = Enabled: Prepend %COMSPEC% /C to Command.  
-* __Service__ - Default = 20 Character Random: Name of the service to create and delete on the target.  
-* __SMB1__ - (Switch) Force SMB1. The default behavior is to perform SMB version negotiation and use SMB2 if supported by the target.  
-* __Sleep__ - Default = 150 Milliseconds: Sets the function's Start-Sleep values in milliseconds.  
+* __Command__ - Command to execute on the target. If a command is not specified, the function will just check to see if the username and hash has access to WMI or SCM on the target.  
+* __CommandCOMSPEC__ - Default = Enabled: SMBExec type only. Prepend %COMSPEC% /C to Command.  
+* __Service__ - Default = 20 Character Random: SMBExec type only. Name of the service to create and delete on the target.  
+* __SMB1__ - (Switch) Force SMB1. SMBExec type only. The default behavior is to perform SMB version negotiation and use SMB2 if supported by the target.  
+* __Sleep__ - Default = WMI 10 Milliseconds, SMB 150 Milliseconds: Sets the function's Start-Sleep values in milliseconds.  
 
 ##### Example:
 Invoke-TheHash -Type WMIExec -Targets 192.168.100.0/24 -TargetsExclude 192.168.100.50 -Username Administrator -Hash F6F38B793DB6A94BA04A52F1D3EE92F0  
