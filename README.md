@@ -34,7 +34,7 @@ or
 Invoke-WMIExec -Target 192.168.100.20 -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -Command "command or launcher to execute" -verbose  
 
 ##### Screenshot:
-![wmi](https://cloud.githubusercontent.com/assets/5897462/21594956/b0d9befc-d0f6-11e6-8e8f-8df8bbc017a2.png)
+![wmi](https://cloud.githubusercontent.com/assets/5897462/21598463/7379df8a-d12b-11e6-8e8e-6dc6da4be235.png)
 
 ### Invoke-SMBExec
 * SMB (PsExec) command execution function supporting SMB1, SMB2, and SMB signing.  
