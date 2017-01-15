@@ -1,5 +1,5 @@
 # Invoke-TheHash
-Invoke-TheHash contains PowerShell functions for performing NTLMv2 pass the hash WMI and SMB command execution. WMI and SMB services are accessed through .NET TCPClient connections. Local administrator privilege is not required client-side.  
+Invoke-TheHash contains PowerShell functions for performing pass the hash WMI and SMB command execution. WMI and SMB services are accessed through .NET TCPClient connections. Authentication is performed by passing an NTLM hash into the NTLMv2 authentication protocol. Local administrator privilege is not required client-side.  
 
 # Requirements
 Minimum PowerShell 2.0  

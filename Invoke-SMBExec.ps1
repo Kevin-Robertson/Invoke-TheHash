@@ -1523,6 +1523,11 @@ if($SMB_client.Connected)
                             $SMB_client_stage = 'ReadAndXRequest'
                             $SMB_client_stage_next = 'DeleteServiceW'  
                         }
+                        elseif([System.BitConverter]::ToString($SMB_client_receive[112..115]) -eq '31-04-00-00')
+                        {
+                            Write-Output "Service $SMB_service creation failed on $Target"
+                            $SMBExec_failed = $true
+                        }
                         else
                         {
                             Write-Output "Service creation fault context mismatch"
@@ -2037,7 +2042,7 @@ if($SMB_client.Connected)
                     'StartServiceW'
                     {
                     
-                        if([System.BitConverter]::ToString($SMB_client_receive[112..115]) -eq '00-00-00-00')
+                        if([System.BitConverter]::ToString($SMB_client_receive[132..135]) -eq '00-00-00-00')
                         {
                             Write-Verbose "Service $SMB_service created on $Target"
                             $SMB_service_context_handle = $SMB_client_receive[112..131]
@@ -2077,6 +2082,11 @@ if($SMB_client.Connected)
                             $SMB_client_stream.Read($SMB_client_receive,0,$SMB_client_receive.Length) > $null
                             $SMB_client_stage = 'ReadRequest'
                             $SMB_client_stage_next = 'DeleteServiceW'     
+                        }
+                        elseif([System.BitConverter]::ToString($SMB_client_receive[132..135]) -eq '31-04-00-00')
+                        {
+                            Write-Output "Service $SMB_service creation failed on $Target"
+                            $SMBExec_failed = $true
                         }
                         else
                         {
