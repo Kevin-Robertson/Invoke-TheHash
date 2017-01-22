@@ -1239,9 +1239,25 @@ if($WMI_client_init.Connected)
                                 $command_length2 = $command_length2[0,1]
                                 [Byte[]]$command_bytes = [System.Text.Encoding]::UTF8.GetBytes($Command)
 
-                                if([Bool]!($Command.Length % 2))
+
+                                # thanks to @vysec for finding a bug with certain command lengths
+                                [String]$command_padding_check = $Command.Length / 4
+
+                                if($command_padding_check -like "*.75")
                                 {
                                     $command_bytes += 0x00
+                                }
+                                elseif($command_padding_check -like "*.5")
+                                {
+                                    $command_bytes += 0x00,0x00
+                                }
+                                elseif($command_padding_check -like "*.25")
+                                {
+                                    $command_bytes += 0x00,0x00,0x00
+                                }
+                                else
+                                {
+                                    $command_bytes += 0x00,0x00,0x00,0x00
                                 }
 
                                 $stub_data = 0x05,0x00,0x07,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 +
@@ -1361,8 +1377,8 @@ if($WMI_client_init.Connected)
                                                 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
                                                 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
                                                 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                                                0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x02,0x00,0x00,
-                                                0x00,0x00,0x00,0x00,0x00,0x00,0x00
+                                                0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x02,0x00,0x00,0x00,
+                                                0x00,0x00,0x00,0x00,0x00,0x00
 
                             }
 
