@@ -1,4 +1,4 @@
-﻿function Invoke-SMBExec
+function Invoke-SMBExec
 {
 <#
 .SYNOPSIS
@@ -758,7 +758,7 @@ function Get-PacketSCMCreateServiceW()
     $packet_SCMCreateServiceW.Add("SCMCreateServiceW_DisplayName",$packet_service)
     $packet_SCMCreateServiceW.Add("SCMCreateServiceW_AccessMask",[Byte[]](0xff,0x01,0x0f,0x00))
     $packet_SCMCreateServiceW.Add("SCMCreateServiceW_ServiceType",[Byte[]](0x10,0x00,0x00,0x00))
-    $packet_SCMCreateServiceW.Add("SCMCreateServiceW_ServiceStartType",[Byte[]](0x02,0x00,0x00,0x00))
+    $packet_SCMCreateServiceW.Add("SCMCreateServiceW_ServiceStartType",[Byte[]](0x03,0x00,0x00,0x00))
     $packet_SCMCreateServiceW.Add("SCMCreateServiceW_ServiceErrorControl",[Byte[]](0x00,0x00,0x00,0x00))
     $packet_SCMCreateServiceW.Add("SCMCreateServiceW_BinaryPathName_MaxCount",$packet_command_length)
     $packet_SCMCreateServiceW.Add("SCMCreateServiceW_BinaryPathName_Offset",[Byte[]](0x00,0x00,0x00,0x00))
@@ -1430,7 +1430,7 @@ if($SMB_client.Connected)
                         }
                         elseif([System.BitConverter]::ToString($SMB_client_receive[108..111]) -eq '05-00-00-00')
                         {
-                            Write-Output "$output_username is not a local administrator on $Target"
+                            Write-Output "$output_username is not a local administrator or does not have required privilege on $Target"
                             $SMBExec_failed = $true
                         }
                         else
@@ -2142,7 +2142,7 @@ if($SMB_client.Connected)
                         }
                         elseif([System.BitConverter]::ToString($SMB_client_receive[128..131]) -eq '05-00-00-00')
                         {
-                            Write-Output "$output_username is not a local administrator on $Target"
+                            Write-Output "$output_username is not a local administrator or does not have required privilege on $Target"
                             $SMBExec_failed = $true
                         }
                         else

@@ -1,4 +1,4 @@
-﻿function Invoke-WMIExec
+function Invoke-WMIExec
 {
 <#
 .SYNOPSIS
