@@ -8,3 +8,4 @@ https://github.com/Kevin-Robertson/Invoke-TheHash
 Import-Module $PWD\Invoke-TheHash.ps1
 Import-Module $PWD\Invoke-SMBExec.ps1
 Import-Module $PWD\Invoke-WMIExec.ps1
+Import-Module $PWD\Invoke-SMBClient.ps1

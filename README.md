@@ -1,5 +1,5 @@
 # Invoke-TheHash
-Invoke-TheHash contains PowerShell functions for performing pass the hash WMI and SMB command execution. WMI and SMB services are accessed through .NET TCPClient connections. Authentication is performed by passing an NTLM hash into the NTLMv2 authentication protocol. Local administrator privilege is not required client-side.  
+Invoke-TheHash contains PowerShell functions for performing pass the hash WMI and SMB tasks. WMI and SMB services are accessed through .NET TCPClient connections. Authentication is performed by passing an NTLM hash into the NTLMv2 authentication protocol. Local administrator privilege is not required client-side.  
 
 # Requirements
 Minimum PowerShell 2.0  
@@ -11,11 +11,13 @@ or
 
 . ./Invoke-WMIExec.ps1  
 . ./Invoke-SMBExec.ps1  
+. ./Invoke-SMBClient.ps1  
 . ./Invoke-TheHash.ps1  
 
 ## Functions  
 * Invoke-WMIExec  
 * Invoke-SMBExec  
+* Invoke-SMBClient  
 * Invoke-TheHash  
 * ConvertTo-TargetList  
 
@@ -26,7 +28,7 @@ or
 * __Target__ - Hostname or IP address of target.  
 * __Username__ - Username to use for authentication.  
 * __Domain__ - Domain to use for authentication. This parameter is not needed with local accounts or when using @domain after the username.  
-* __Hash__ - NTLM password hash for authentication. This module will accept either LM:NTLM or NTLM format.  
+* __Hash__ - NTLM password hash for authentication. This function will accept either LM:NTLM or NTLM format.  
 * __Command__ - Command to execute on the target. If a command is not specified, the function will just check to see if the username and hash has access to WMI on the target.  
 * __Sleep__ - Default = 10 Milliseconds: Sets the function's Start-Sleep values in milliseconds.  
 
@@ -37,13 +39,13 @@ Invoke-WMIExec -Target 192.168.100.20 -Domain TESTDOMAIN -Username TEST -Hash F6
 ![wmi](https://cloud.githubusercontent.com/assets/5897462/21598463/7379df8a-d12b-11e6-8e8e-6dc6da4be235.png)
 
 ### Invoke-SMBExec
-* SMB (PsExec) command execution function supporting SMB1, SMB2, and SMB signing.  
+* SMB (PsExec) command execution function supporting SMB1, SMB2 (2.1), and SMB signing.  
 
 ##### Parameters:
 * __Target__ - Hostname or IP address of target.  
 * __Username__ - Username to use for authentication.  
 * __Domain__ - Domain to use for authentication. This parameter is not needed with local accounts or when using @domain after the username.  
-* __Hash__ - NTLM password hash for authentication. This module will accept either LM:NTLM or NTLM format.  
+* __Hash__ - NTLM password hash for authentication. This function will accept either LM:NTLM or NTLM format.  
 * __Command__ - Command to execute on the target. If a command is not specified, the function will just check to see if the username and hash has access to SCM on the target.  
 * __CommandCOMSPEC__ - Default = Enabled: Prepend %COMSPEC% /C to Command.  
 * __Service__ - Default = 20 Character Random: Name of the service to create and delete on the target.  
@@ -55,6 +57,80 @@ Invoke-SMBExec -Target 192.168.100.20 -Domain TESTDOMAIN -Username TEST -Hash F6
 
 ##### Screenshot:
 ![smb](https://cloud.githubusercontent.com/assets/5897462/21594963/b899ecf2-d0f6-11e6-9bd7-750b218e86a0.png)
+
+### Invoke-SMBClient
+* SMB client function supporting SMB2 (2.1) and SMB signing. This function primarily provides SMB file share capabilities for working with hashes that do not have remote command execution privilege. This function can also be used for staging payloads for use with Invoke-WMIExec and Invoke-SMBExec. Note that Invoke-SMBClient is built on the .NET TCPClient and does not use the Windows SMB client. Invoke-SMBClient is much slower than the Windows client and is still in an early stage. It's advisable to only use this client when pass the hash is required.   
+
+##### Parameters:
+* __Username__ - Username to use for authentication.  
+* __Domain__ - Domain to use for authentication. This parameter is not needed with local accounts or when using @domain after the username.  
+* __Hash__ - NTLM password hash for authentication. This function will accept either LM:NTLM or NTLM format.  
+* __Action__ - Default = List: (List/Recurse/Delete/Get/Put) Action to perform.  
+  1. * List: Lists the contents of a directory.  
+  1. * Recurse: Lists the contents of a directory and all subdirectories.  
+  1. * Delete: Deletes a file.  
+  1. * Get: Downloads a file.  
+  1. * Put: Uploads a file and sets the creation, access, and last write times to match the source file.  
+* __Source__
+  1. * List and Recurse: UNC path to a directory.  
+  1. * Delete: UNC path to a file.  
+  1. * Get: UNC path to a file.  
+  1. * Put: File to upload. If a full path is not specified, the file must be in the current directory. When using the 'Modify' switch, 'Source' must be a byte array.  
+* __Destination__
+  1. * List and Recurse: Not used.  
+  1. * Delete: Not used.  
+  1. * Get: If used, value will be the new filename of downloaded file. If a full path is not specified, the file will be created in the current directory.   
+  1. * Put: UNC path for uploaded file. The filename must be specified.  
+* __Modify__
+  1. * List and Recurse: The function will output an object consisting of directory contents.  
+  1. * Delete: Not used.  
+  1. * Get: The function will output a byte array of the downloaded file instead of writing the file to disk. It's advisable to use this only with smaller files and to send the output to a variable.  
+  1. * Put: Uploads a byte array to a new destination file.  
+* __NoProgress__ - Prevents displaying an upload and download progress bar.  
+* __Sleep__ - Default = 100 Milliseconds: Sets the function's Start-Sleep values in milliseconds.  
+
+##### Example:
+List the contents of a root share directory.  
+Invoke-SMBClient -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -Source \\server\share -verbose
+
+##### Example:
+Recursively list the contents of a share starting at the root.  
+Invoke-SMBClient -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -Action Recurse -Source \\server\share
+
+##### Example:
+Recursively list the contents of a share subdirectory and return only the contents output to a variable.  
+$directory_contents = Invoke-SMBClient -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -Action Recurse -Source \\server\share\subdirectory -Modify
+
+##### Example:
+Delete a file on a share.  
+Invoke-SMBClient -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -Action Delete -Source \\server\share\file.txt
+
+##### Example:
+Delete a file in subdirectories within a share.  
+Invoke-SMBClient -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -Action Delete -Source \\server\share\subdirectory\subdirectory\file.txt
+
+##### Example:
+Download a file from a share.  
+Invoke-SMBClient -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -Action Get -Source \\server\share\file.txt
+
+##### Example:
+Download a file from within a share subdirectory and set a new filename.  
+Invoke-SMBClient -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -Action Get -Source \\server\share\subdirectory\file.txt -Destination file.txt
+
+##### Example:
+Download a file from a share to a byte array variable instead of disk.  
+$password_file = Invoke-SMBClient -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -Action Get -Source \\server\share\file.txt -Modify
+
+##### Example:
+Upload a file to a share subdirectory.  
+Invoke-SMBClient -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -Action Put -Source file.exe -Destination \\server\share\subdirectory\file.exe
+
+##### Example:
+Upload a file to share from a byte array variable.  
+Invoke-SMBClient -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -Action Put -Source $file_byte_array -Destination \\server\share\file.txt -Modify
+
+##### Screenshot:
+![invoke-smbclient](https://user-images.githubusercontent.com/5897462/27063366-4c13cf38-4fbf-11e7-90be-8f7da4f88285.PNG)
 
 ### Invoke-TheHash  
 * Function for running Invoke-WMIExec and Invoke-SMBExec against multiple targets.  
@@ -82,8 +158,3 @@ Invoke-TheHash -Type WMIExec -Targets 192.168.100.0/24 -TargetsExclude 192.168.1
 
 ### ConvertTo-TargetList
 * Converts Invoke-TheHash output to an array that contains only targets discovered to have Invoke-WMIExec or Invoke-SMBExec access. The output from this function can be fed back into the Targets parameter of Invoke-TheHash.   
-
-
-
-
-
