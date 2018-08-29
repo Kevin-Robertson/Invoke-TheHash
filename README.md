@@ -1,5 +1,5 @@
 # Invoke-TheHash
-Invoke-TheHash contains PowerShell functions for performing pass the hash WMI and SMB tasks. WMI and SMB services are accessed through .NET TCPClient connections. Authentication is performed by passing an NTLM hash into the NTLMv2 authentication protocol. Local administrator privilege is not required client-side.  
+Invoke-TheHash contains PowerShell functions for performing pass the hash WMI and SMB tasks. WMI and SMB connections are accessed through the .NET TCPClient. Authentication is performed by passing an NTLM hash into the NTLMv2 authentication protocol. Local administrator privilege is not required client-side.  
 
 # Requirements
 Minimum PowerShell 2.0  
@@ -11,15 +11,16 @@ or
 
 . ./Invoke-WMIExec.ps1  
 . ./Invoke-SMBExec.ps1  
+. ./Invoke-SMBEnum.ps1  
 . ./Invoke-SMBClient.ps1  
 . ./Invoke-TheHash.ps1  
 
 ## Functions  
 * Invoke-WMIExec  
 * Invoke-SMBExec  
+* Invoke-SMBEnum  
 * Invoke-SMBClient  
 * Invoke-TheHash  
-* ConvertTo-TargetList  
 
 ### Invoke-WMIExec
 * WMI command execution function.  
@@ -39,7 +40,7 @@ Invoke-WMIExec -Target 192.168.100.20 -Domain TESTDOMAIN -Username TEST -Hash F6
 ![wmi](https://cloud.githubusercontent.com/assets/5897462/21598463/7379df8a-d12b-11e6-8e8e-6dc6da4be235.png)
 
 ### Invoke-SMBExec
-* SMB (PsExec) command execution function supporting SMB1, SMB2 (2.1), and SMB signing.  
+* SMB (PsExec) command execution function supporting SMB1, SMB2.1, with and without SMB signing.  
 
 ##### Parameters:
 * __Target__ - Hostname or IP address of target.  
@@ -49,17 +50,40 @@ Invoke-WMIExec -Target 192.168.100.20 -Domain TESTDOMAIN -Username TEST -Hash F6
 * __Command__ - Command to execute on the target. If a command is not specified, the function will just check to see if the username and hash has access to SCM on the target.  
 * __CommandCOMSPEC__ - Default = Enabled: Prepend %COMSPEC% /C to Command.  
 * __Service__ - Default = 20 Character Random: Name of the service to create and delete on the target.  
-* __SMB1__ - (Switch) Force SMB1. The default behavior is to perform SMB version negotiation and use SMB2 if supported by the target.  
 * __Sleep__ - Default = 150 Milliseconds: Sets the function's Start-Sleep values in milliseconds.  
+* __Version__ - Default = Auto: (Auto,1,2.1) Force SMB version. The default behavior is to perform SMB version negotiation and use SMB2.1 if supported by the target.  
 
 ##### Example:
 Invoke-SMBExec -Target 192.168.100.20 -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -Command "command or launcher to execute" -verbose  
 
+##### Example:
+Check SMB signing requirements on target.
+Invoke-SMBExec -Target 192.168.100.20  
+
 ##### Screenshot:
 ![smb](https://cloud.githubusercontent.com/assets/5897462/21594963/b899ecf2-d0f6-11e6-9bd7-750b218e86a0.png)
 
+### Invoke-SMBEnum
+* Invoke-SMBEnum performs User, Group, NetSession and Share enumeration tasks over SMB2.1 with and without SMB signing.  
+
+##### Parameters:
+* __Target__ - Hostname or IP address of target.  
+* __Username__ - Username to use for authentication.  
+* __Domain__ - Domain to use for authentication. This parameter is not needed with local accounts or when using @domain after the username.  
+* __Hash__ - NTLM password hash for authentication. This function will accept either LM:NTLM or NTLM format.  
+* __Action__ - (All,Group,NetSession,Share,User) Default = Share: Enumeration action to perform.  
+* __Group__ - Default = Administrators: Group to enumerate.  
+* __Sleep__ - Default = 150 Milliseconds: Sets the function's Start-Sleep values in milliseconds.  
+* __Version__ - Default = Auto: (Auto,1,2.1) Force SMB version. The default behavior is to perform SMB version negotiation and use SMB2.1 if supported by the target. Note, only the signing check works with SMB1. 
+
+##### Example:
+Invoke-SMBEnum -Target 192.168.100.20 -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -verbose  
+
+##### Screenshot:
+![invoke-smbenum](https://user-images.githubusercontent.com/5897462/44761058-b4254280-ab0f-11e8-8607-94e9d73f751c.PNG)
+
 ### Invoke-SMBClient
-* SMB client function supporting SMB2 (2.1) and SMB signing. This function primarily provides SMB file share capabilities for working with hashes that do not have remote command execution privilege. This function can also be used for staging payloads for use with Invoke-WMIExec and Invoke-SMBExec. Note that Invoke-SMBClient is built on the .NET TCPClient and does not use the Windows SMB client. Invoke-SMBClient is much slower than the Windows client and is still in an early stage. It's advisable to only use this client when pass the hash is required.   
+* SMB client function supporting SMB2.1 and SMB signing. This function primarily provides SMB file share capabilities for working with hashes that do not have remote command execution privilege. This function can also be used for staging payloads for use with Invoke-WMIExec and Invoke-SMBExec. Note that Invoke-SMBClient is built on the .NET TCPClient and does not use the Windows SMB client. Invoke-SMBClient is much slower than the Windows client.  
 
 ##### Parameters:
 * __Username__ - Username to use for authentication.  
@@ -88,6 +112,7 @@ Invoke-SMBExec -Target 192.168.100.20 -Domain TESTDOMAIN -Username TEST -Hash F6
   1. * Put: Uploads a byte array to a new destination file.  
 * __NoProgress__ - Prevents displaying an upload and download progress bar.  
 * __Sleep__ - Default = 100 Milliseconds: Sets the function's Start-Sleep values in milliseconds.  
+* __Version__ - Default = Auto: (Auto,1,2.1) Force SMB version. The default behavior is to perform SMB version negotiation and use SMB2.1 if supported by the target. Note, only the signing check works with SMB1.  
 
 ##### Example:
 List the contents of a root share directory.  
@@ -133,12 +158,12 @@ Invoke-SMBClient -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F
 ![invoke-smbclient](https://user-images.githubusercontent.com/5897462/27063366-4c13cf38-4fbf-11e7-90be-8f7da4f88285.PNG)
 
 ### Invoke-TheHash  
-* Function for running Invoke-WMIExec and Invoke-SMBExec against multiple targets.  
+* Function for running Invoke-TheHash functions against multiple targets.  
 
 ##### Parameters:
-* __Type__ - Sets the desired Invoke-TheHash function. Set to either WMIExec or SMBExec.  
-* __Targets__ - List of hostnames, IP addresses, or CIDR notation for targets.  
-* __TargetsExclude__ - List of hostnames and/or IP addresses to exclude form the list or targets.  
+* __Type__ - Sets the desired Invoke-TheHash function. Set to either SMBClient, SMBEnum, SMBExec, or WMIExec.  
+* __Target__ - List of hostnames, IP addresses, CIDR notation, or IP ranges for targets.  
+* __TargetExclude__ - List of hostnames, IP addresses, CIDR notation, or IP ranges to exclude from the list or targets.  
 * __PortCheckDisable__ - (Switch) Disable WMI or SMB port check. Since this function is not yet threaded, the port check serves to speed up he function by checking for an open WMI or SMB port before attempting a full synchronous TCPClient connection.  
 * __PortCheckTimeout__ - Default = 100: Set the no response timeout in milliseconds for the WMI or SMB port check.  
 * __Username__ - Username to use for authentication.  
@@ -156,5 +181,3 @@ Invoke-TheHash -Type WMIExec -Targets 192.168.100.0/24 -TargetsExclude 192.168.1
 ##### Screenshot:
 ![ithsmb](https://cloud.githubusercontent.com/assets/5897462/21594966/c0f69a62-d0f6-11e6-91f2-af9103571bde.png)
 
-### ConvertTo-TargetList
-* Converts Invoke-TheHash output to an array that contains only targets discovered to have Invoke-WMIExec or Invoke-SMBExec access. The output from this function can be fed back into the Targets parameter of Invoke-TheHash.   
