@@ -728,9 +728,6 @@ function New-PacketSCMOpenSCManagerW
 {
     param ([Byte[]]$packet_service,[Byte[]]$packet_service_length)
 
-    [Byte[]]$packet_write_length = [System.BitConverter]::GetBytes($packet_service.Length + 92)
-    [Byte[]]$packet_frag_length = $packet_write_length[0,1]
-    [Byte[]]$packet_alloc_hint = [System.BitConverter]::GetBytes($packet_service.Length + 68)
     $packet_referent_ID1 = [String](1..2 | ForEach-Object {"{0:X2}" -f (Get-Random -Minimum 1 -Maximum 255)})
     $packet_referent_ID1 = $packet_referent_ID1.Split(" ") | ForEach-Object{[Char][System.Convert]::ToInt16($_,16)}
     $packet_referent_ID1 += 0x00,0x00
@@ -2938,7 +2935,7 @@ if($client.Connected -or (!$startup_error -and $inveigh.session_socket_table[$se
     {
         $inveigh.session_lock_table[$session] = 'open'
         $inveigh.session_message_ID_table[$session] = $message_ID
-        $inveigh.session_list[$session] | Where-Object {$_."Last Activity" = Get-Date -format s}
+        $inveigh.session[$session] | Where-Object {$_."Last Activity" = Get-Date -format s}
     }
 
     if(!$inveigh_session -or $Logoff)

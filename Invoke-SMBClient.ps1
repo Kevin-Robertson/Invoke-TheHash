@@ -2918,7 +2918,7 @@ if($client.Connected -or (!$startup_error -and $inveigh.session_socket_table[$se
         {
             $inveigh.session_lock_table[$session] = 'open'
             $inveigh.session_message_ID_table[$session] = $message_ID
-            $inveigh.session_list[$session] | Where-Object {$_."Last Activity" = Get-Date -format s}
+            $inveigh.session[$session] | Where-Object {$_."Last Activity" = Get-Date -format s}
         }
 
         if(!$inveigh_session -or $Logoff)

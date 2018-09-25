@@ -2806,10 +2806,15 @@ if($client.Connected -or (!$startup_error -and $inveigh.session_socket_table[$se
 
                             'NetSessEnum'
                             {
-
+                                
                                 if([System.BitConverter]::ToString($client_receive[172..175]) -eq '05-00-00-00')
                                 {
                                     Write-Output "[-] $username does not have permission to enumerate NetSessions on $target"
+                                    $stage = 'CloseRequest'
+                                }
+                                elseif([System.BitConverter]::ToString($client_receive[12..15]) -ne '00-00-00-00')
+                                {
+                                    Write-Output "[-] NetSessEnum response error 0x$([System.BitConverter]::ToString($client_receive[15..12]) -replace '-','')"
                                     $stage = 'CloseRequest'
                                 }
                                 else
@@ -3168,14 +3173,13 @@ if($client.Connected -or (!$startup_error -and $inveigh.session_socket_table[$se
 
         }
 
-
     }
 
     if($inveigh_session -and $Inveigh)
     {
         $inveigh.session_lock_table[$session] = 'open'
         $inveigh.session_message_ID_table[$session] = $message_ID
-        $inveigh.session_list[$session] | Where-Object {$_."Last Activity" = Get-Date -format s}
+        $inveigh.session[$session] | Where-Object {$_."Last Activity" = Get-Date -format s}
     }
 
     if(!$inveigh_session -or $Logoff)
