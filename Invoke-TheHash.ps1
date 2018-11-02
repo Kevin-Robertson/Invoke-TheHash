@@ -56,10 +56,10 @@ Default = WMI 10 Milliseconds, SMB 150 Milliseconds: Sets the function's Start-S
 setting if you are experiencing strange results.
 
 .EXAMPLE
-Invoke-TheHash -Type WMIExec -Target 192.168.100.0/24 -TargetsExclude 192.168.100.50 -Username administrator -Hash F6F38B793DB6A94BA04A52F1D3EE92F0
+Invoke-TheHash -Type WMIExec -Target 192.168.100.0/24 -TargetExclude 192.168.100.50 -Username administrator -Hash F6F38B793DB6A94BA04A52F1D3EE92F0
 
 .EXAMPLE
-Invoke-TheHash -Type SMBExec -Target 192.168.100.1-100 -TargetsExclude 192.168.100.50 -Username user1 -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -domain test
+Invoke-TheHash -Type SMBExec -Target 192.168.100.1-100 -TargetExclude 192.168.100.50 -Username user1 -Hash F6F38B793DB6A94BA04A52F1D3EE92F0 -domain test
 
 .LINK
 https://github.com/Kevin-Robertson/Invoke-TheHash
