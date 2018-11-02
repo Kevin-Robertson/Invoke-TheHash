@@ -176,7 +176,7 @@ Invoke-SMBClient -Domain TESTDOMAIN -Username TEST -Hash F6F38B793DB6A94BA04A52F
 * __Sleep__ - Default = WMI 10 Milliseconds, SMB 150 Milliseconds: Sets the function's Start-Sleep values in milliseconds.  
 
 ##### Example:
-Invoke-TheHash -Type WMIExec -Targets 192.168.100.0/24 -TargetsExclude 192.168.100.50 -Username Administrator -Hash F6F38B793DB6A94BA04A52F1D3EE92F0  
+Invoke-TheHash -Type WMIExec -Target 192.168.100.0/24 -TargetsExclude 192.168.100.50 -Username Administrator -Hash F6F38B793DB6A94BA04A52F1D3EE92F0  
 
 ##### Screenshot:
 ![ithsmb](https://cloud.githubusercontent.com/assets/5897462/21594966/c0f69a62-d0f6-11e6-91f2-af9103571bde.png)
