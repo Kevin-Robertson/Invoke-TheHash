@@ -318,11 +318,11 @@ if($target_list.Count -gt 0)
 
                         if($PsCmdlet.ParameterSetName -eq 'Auth')
                         {
-                            Invoke-SMBEnum -username $Username -domain $Domain -hash $Hash -target $target -sleep $Sleep -Action $Action -TargetShow -Verbose:$VerbosePreference
+                            Invoke-SMBEnum -username $Username -domain $Domain -hash $Hash -target ($target | Out-String).trim() -sleep $Sleep -Action $Action -TargetShow -Verbose:$VerbosePreference
                         }
                         else
                         {
-                            Invoke-SMBEnum -target $target -sleep $Sleep -Verbose:$VerbosePreference
+                            Invoke-SMBEnum -target ($target | Out-String).trim() -sleep $Sleep -Verbose:$VerbosePreference
                         }
 
                     }
