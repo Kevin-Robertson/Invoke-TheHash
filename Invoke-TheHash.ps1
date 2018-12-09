@@ -259,9 +259,9 @@ if($TargetExclude)
 if($target_list.Count -gt 0)
 {
 
-    foreach($target in $target_list)
+    foreach($target_host in $target_list)
     {
-        Write-Verbose "[*] Targeting $target"
+        Write-Verbose "[*] Targeting $target_host"
 
         if($type -eq 'WMIExec')
         {
@@ -269,14 +269,14 @@ if($target_list.Count -gt 0)
             if(!$PortCheckDisable)
             {
                 $WMI_port_test = New-Object System.Net.Sockets.TCPClient
-                $WMI_port_test_result = $WMI_port_test.BeginConnect($target,"135",$null,$null)
+                $WMI_port_test_result = $WMI_port_test.BeginConnect($target_host,"135",$null,$null)
                 $WMI_port_test_success = $WMI_port_test_result.AsyncWaitHandle.WaitOne($PortCheckTimeout,$false)
                 $WMI_port_test.Close()
             }
 
             if($WMI_port_test_success -or $PortCheckDisable)
             {
-                Invoke-WMIExec -username $Username -domain $Domain -hash $Hash -command $Command -target $target -sleep $Sleep -Verbose:$VerbosePreference
+                Invoke-WMIExec -username $Username -domain $Domain -hash $Hash -command $Command -target $target_host -sleep $Sleep -Verbose:$VerbosePreference
             }
 
         }
@@ -286,7 +286,7 @@ if($target_list.Count -gt 0)
             if(!$PortCheckDisable)
             {
                 $SMB_port_test = New-Object System.Net.Sockets.TCPClient
-                $SMB_port_test_result = $SMB_port_test.BeginConnect($target,"445",$null,$null)
+                $SMB_port_test_result = $SMB_port_test.BeginConnect($target_host,"445",$null,$null)
                 $SMB_port_test_success = $SMB_port_test_result.AsyncWaitHandle.WaitOne($PortCheckTimeout,$false)
                 $SMB_port_test.Close()
             }
@@ -300,7 +300,7 @@ if($target_list.Count -gt 0)
                     'SMBClient'
                     {
 
-                        $source = "\\" + $target + "\c$"
+                        $source = "\\" + $target_host + "\c$"
 
                         if($PsCmdlet.ParameterSetName -eq 'Auth')
                         {
@@ -318,11 +318,11 @@ if($target_list.Count -gt 0)
 
                         if($PsCmdlet.ParameterSetName -eq 'Auth')
                         {
-                            Invoke-SMBEnum -username $Username -domain $Domain -hash $Hash -target $target -sleep $Sleep -Action $Action -TargetShow -Verbose:$VerbosePreference
+                            Invoke-SMBEnum -username $Username -domain $Domain -hash $Hash -target $target_host -sleep $Sleep -Action $Action -TargetShow -Verbose:$VerbosePreference
                         }
                         else
                         {
-                            Invoke-SMBEnum -target $target -sleep $Sleep -Verbose:$VerbosePreference
+                            Invoke-SMBEnum -target $target_host -sleep $Sleep -Verbose:$VerbosePreference
                         }
 
                     }
@@ -332,11 +332,11 @@ if($target_list.Count -gt 0)
 
                         if($PsCmdlet.ParameterSetName -eq 'Auth')
                         {
-                            Invoke-SMBExec -username $Username -domain $Domain -hash $Hash -command $Command -CommandCOMSPEC $CommandCOMSPEC -Service $Service -target $target -sleep $Sleep -Verbose:$VerbosePreference
+                            Invoke-SMBExec -username $Username -domain $Domain -hash $Hash -command $Command -CommandCOMSPEC $CommandCOMSPEC -Service $Service -target $target_host -sleep $Sleep -Verbose:$VerbosePreference
                         }
                         else
                         {
-                            Invoke-SMBExec -target $target -sleep $Sleep -Verbose:$VerbosePreference
+                            Invoke-SMBExec -target $target_host -sleep $Sleep -Verbose:$VerbosePreference
                         }
 
                     }
